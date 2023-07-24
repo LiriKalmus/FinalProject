@@ -2,4 +2,4 @@
 #include <stdio.h>
 #include <string.h>
 
-char* concat_fileName(char *fileName, char *suffix);
+char* concat_str(char *s1, char *s2);

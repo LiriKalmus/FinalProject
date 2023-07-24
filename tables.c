@@ -26,7 +26,7 @@ if(!tp || !mcro_name || !mcro_definition)
 return;
 }
 
-mcro* new_values = (mcro*)realloc(tp->values, (tp->num_mcros+1)*sizeof(mcro));
+mcro *new_values = (mcro*)realloc(tp->values, (tp->num_mcros+1)*sizeof(mcro));
 if(!new_values)
 {
 return;
@@ -45,22 +45,25 @@ return ;
 
 strcpy(tp->values[tp->num_mcros].mcro_definition,mcro_definition);
 tp->num_mcros++;
-
+printf("add: %s\n", tp->values[0].mcro_name);
 }
 
 char* getFromTable_mcro (const mcro_t* tp, const char* mcro_name)
 {
-if(!tp || mcro_name)
+/*if(!tp || !mcro_name)
 {
+printf("111\n");
 return NULL;
-}
+}*/
 
-size_t i;
+
+int i;
 for(i=0;i<(tp->num_mcros);i++)
 {
 	if(strcmp(tp->values[i].mcro_name,mcro_name)==0)
-	{ 
-	return tp->values[i].mcro_definition;
+	{
+		printf("----%s\n", tp->values[i].mcro_definition);
+		return tp->values[i].mcro_definition;
 	}
 
 }
