@@ -13,7 +13,7 @@ char* mcro_definition;
 typedef struct mcro_t
 {
 mcro* values;
-size_t num_mcros;
+int num_mcros;
 
 }mcro_t;
 
@@ -33,7 +33,7 @@ mcro_t* createTable_mcro();
 add a mcro to the table 
 
 */
-void addToTable_mcro (mcro_t* tp, const char* mcro_name, const char*);
+void addToTable_mcro (mcro_t* tp, const char* mcro_name, const char* mcro_definition);
 
 
 
@@ -43,7 +43,7 @@ get a mcro definition from the table
 return a poiner to the mcro definition 
 
 */
-char* getFromTable_mcro (const mcro_t* tp, const char* mcro_name);
+const char* getFromTable_mcro (const mcro_t* tp, const char* mcro_name);
 
 
 /* 
