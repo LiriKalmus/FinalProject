@@ -1,4 +1,5 @@
 #include "pre_assembly.h" 
+#include "tables.h"
 
 bool pre_assembly_file(char *fileName)
 {
@@ -9,7 +10,7 @@ bool pre_assembly_file(char *fileName)
 	char curr_line[MAX_LINE], line[MAX_LINE];
 	char *word;
 	bool reading_mcro = FALSE;
-	mcro_t *mcro_t = createTable_mcro();
+	mcro_t* mcro_t = createTable_mcro();
 
 	/* if unable to open the file: */
 	if(as_file == NULL){
