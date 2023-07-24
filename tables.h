@@ -24,7 +24,7 @@ create an empty mcro table
 @ return the table's pointer
 
 */
-mcro_t* createTable_mcro()
+mcro_t* createTable_mcro();
 
 
 
@@ -33,7 +33,7 @@ mcro_t* createTable_mcro()
 add a mcro to the table 
 
 */
-void addToTable_mcro (mcro_t* tp, const char* mcro_name, const char*)
+void addToTable_mcro (mcro_t* tp, const char* mcro_name, const char*);
 
 
 
@@ -43,7 +43,7 @@ get a mcro definition from the table
 return a poiner to the mcro definition 
 
 */
-char* getFromTable_mcro (const mcro_t* tp, const char* mcro_name)
+char* getFromTable_mcro (const mcro_t* tp, const char* mcro_name);
 
 
 /* 
@@ -52,4 +52,4 @@ free the memory of the mcro table
 
 */
 
-void freeMcro_t (mcro_t* tp)
+void freeMcro_t (mcro_t* tp);
