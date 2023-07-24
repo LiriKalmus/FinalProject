@@ -36,7 +36,7 @@ tp->values = new_values;
 strcpy(tp->values[tp->num_mcros].mcro_name,mcro_name);
 
 size_t mcro_definition_length = strlen(mcro_definition);
-tp->values[tp->num.mcros].mcro_definition=(char*)malloc ((mcro_definition_length+1)*sizeof(char));
+tp->values[tp->num_mcros].mcro_definition=(char*)malloc ((mcro_definition_length+1)*sizeof(char));
 
 if(!tp->values[tp->num_mcros].mcro_definition);
 {
