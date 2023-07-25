@@ -11,8 +11,8 @@ mcro_t* tp = (mcro_t*)malloc(sizeof(mcro_t));
 
 if(tp)
 {
-tp->values = NULL;
-tp->num_mcros =0;
+	tp->values = NULL;
+	tp->num_mcros =0;
 }
 return tp;
 }
@@ -25,13 +25,13 @@ int mcro_definition_length;
 
 if(!tp || !mcro_name || !mcro_definition)
 {
-return;
+	return;
 }
 
 new_values = (mcro*)realloc(tp->values, (tp->num_mcros+1)*sizeof(mcro));
 if(!new_values)
 {
-return;
+	return;
 }
 
 tp->values = new_values;
@@ -42,7 +42,7 @@ tp->values[tp->num_mcros].mcro_definition=(char*)malloc((mcro_definition_length+
 
 if(!tp->values[tp->num_mcros].mcro_definition)
 {
-return ;
+	return ;
 }
 
 strcpy(tp->values[tp->num_mcros].mcro_definition,mcro_definition);
@@ -60,8 +60,8 @@ return NULL;
 
 
 int i;
-for(i=0;i<(tp->num_mcros);i++)
-{printf("----%s\n", tp->values[i].mcro_definition);
+for(i=0;i<(tp->num_mcros);i++){
+	printf("----%s\n", tp->values[i].mcro_definition);
 	if(strcmp(tp->values[i].mcro_name,mcro_name)==0)
 	{
 		printf("++++g%s\n", tp->values[i].mcro_definition);
@@ -84,7 +84,7 @@ return;
 
 for(i=0;i<tp->num_mcros;i++)
 {
-free(tp->values[i].mcro_definition);
+	free(tp->values[i].mcro_definition);
 }
 free(tp->values);
 free(tp);
