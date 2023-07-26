@@ -5,8 +5,8 @@
 
 typedef struct mcro
 {
-char mcro_name[31];
-char* mcro_definition;
+char *mcro_name;
+char *mcro_definition;
 
 }mcro;
 

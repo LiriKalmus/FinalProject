@@ -1,4 +1,4 @@
-                            MAIN: mov @r3 ,LENGTH
+                                MAIN: mov @r3 ,LENGTH
 LOOP: jmp L1
 mcro m1
 sub @r1, @r4
@@ -7,9 +7,23 @@ endmcro
 prn -5
 bne LOOP
 m1
-L1: inc K
+                                                                               L1: inc K 
+
+mcro m2
+sssss
+  bbbbbb
+endmcro
+
 bne LOOP
+
+mcro m3
+
+endmcro
+
 END: stop
+
+m3
 STR: .string “abcdef”
 LENGTH: .data 6,-9,15
 K: .data 22
+m2

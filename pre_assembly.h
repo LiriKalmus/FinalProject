@@ -7,5 +7,5 @@
 #include "utils.h"
 #include "tables.h"  
 
-bool pre_assembly_file(char *fileName);
+bool pre_assembly(char *fileName);
 
