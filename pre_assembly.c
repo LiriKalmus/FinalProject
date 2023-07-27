@@ -44,7 +44,6 @@ bool pre_assembly(char *fileName)
 			max_len = (max_len == 0) ? 1 : max_len * 2; 
 			curr_line = realloc(curr_line, max_len);
 		}
-
 		curr_line[i++] = ch;
 		
 		/* If we have finished reading the line:*/

@@ -45,5 +45,25 @@ char* concat_str(char *s1, char *s2)
 	return str;
 }
 
+bool valid_label(char *word)
+{
+	word[strlen(word)-1] = '\0';
+	
+	printf("IS A LABEL:%s\n",word);
 
+	/*check if label is valid:*/
+	return TRUE;
+
+}
+
+bool valid_directive(char *word)
+{
+        memmove(word, word + 1, strlen(word));
+	printf("IS A directive:%s\n",word);
+
+	/*check if directive is valid:*/
+	
+	return TRUE;
+
+}
 

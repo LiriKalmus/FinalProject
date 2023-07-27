@@ -18,8 +18,7 @@ bool firstPass(FILE *file)
 		}
 		else{
 			printf("###%s",curr_line);
-			pass_success = processing_line(curr_line);
-			
+			pass_success = processing_line(curr_line);	
 		}
 	}
 	return pass_success;
@@ -28,23 +27,52 @@ bool firstPass(FILE *file)
 bool processing_line(char curr_line[MAX_LINE+2])
 {
 	char **words = separate_line(curr_line);
-	bool reading_label = FALSE;
-	char *label;
+	bool reading_label = FALSE, line_success = TRUE;
+	int word_position = 0;
 	
-	if(words[0][strlen(words[0])-1] == ':')
+	if(words[word_position][strlen(words[word_position])-1] == ':')
 	{
-		reading_label = TRUE;
-		printf("IS A LABEL:%s\n",words[0]);
-		/*label = malloc(strlen(words[0])-1); 
-		if(label == NULL){
-			fprintf(stderr, "memory cannot be allocated!!\n");
-			return FALSE;
+		if(valid_label(words[word_position])){
+			reading_label = TRUE;
 		}
-		strcpy(label, words[0]);
-		printf("IS A LABEL:%s\n",label);*/
+		else{
+			/*ERROR*/
+			line_success = FALSE;
+		}
+		word_position++;	
 	}
 
-	return TRUE;
+	if(words[word_position][0] == '.'){
+		if(valid_directive(words[word_position])){
+			printf("directive:%s\n",words[word_position]);
+			
+			if (strcmp(words[word_position], "data") == 0 || strcmp(words[word_position], "string") == 0)
+			{
+				if(reading_label){
+
+				}
+			} 
+			else if (strcmp(words[word_position], "entry") == 0) 
+			{
+				printf("entry\n");
+			} 
+			else if (strcmp(words[word_position], "extern") == 0) 
+			{
+				printf("extern\n");
+			} 
+			else {
+				printf("Invalid choice\n");
+				line_success = FALSE;
+			}
+		}
+		else{
+			/*ERROR*/
+			line_success = FALSE;
+		}
+		word_position++;	
+	}
+
+	return line_success;
 }
 
 
