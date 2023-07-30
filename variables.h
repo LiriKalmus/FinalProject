@@ -9,6 +9,46 @@ typedef enum Bool{
 	FALSE=0,
 	TRUE=1
 } bool;
+
+
+typedef enum symbol_type {
+	code_type,
+	date_type,
+	external_type
+} symbol_type;
+
+
+typedef enum inst_op {
+	inst_mov,
+	inst_cmp,
+	inst_add,
+	inst_sub,
+	inst_not,
+	inst_clr,
+	inst_lea,
+	inst_inc,
+	inst_dec,
+	inst_jmp,
+	inst_bne,
+	inst_red,
+	inst_prn,
+	inst_jsr,
+	inst_rts,
+	inst_stop
+} inst_op;
+
+
+
+
+typedef struct code_word {
+	unsigned int ARE: 2;
+	unsigned int mion_dest: 3;
+	unsigned int opcode: 4;
+	unsigned int mion_source: 3;
+
+} code_word;
+
+
 /*
 typedef enum symbol_t{
     ENTRY_SYMBOL = 0,

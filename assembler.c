@@ -5,6 +5,8 @@ bool file_processing(char *fileName)
 {
 	char *am_fileName;
 	FILE *am_file;
+	
+
 
  	if(!pre_assembly(fileName)){
 		fprintf(stderr, "The macros did not spread properly in %s.as! \n", fileName);
