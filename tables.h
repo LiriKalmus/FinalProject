@@ -1,3 +1,7 @@
+#ifndef _TABLES_H
+#define _TABLES_H
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -61,18 +65,15 @@ void freeMcro_t (mcro_t* tp);
 
 
 
-typedef struct symbol
-{
+typedef struct symbol{
 	char* symbol_name;
 	int address;
 	symbol_type type;
-
 }symbol;
 
-typedef struct symbol_t
-{
-symbol* values;
-int num_symbols;
+typedef struct symbol_t{
+	symbol* values;
+	int num_symbols;
 
 }symbol_t;
 
@@ -117,4 +118,5 @@ kidudNetonim_t* createKidudNetonim();
 void addToKidudNetonim_t(kidudNetonim_t* tp, long new_DC, const char* new_data);
 void freeKidudNetonim_t(kidudNetonim_t* tp);*/
 
+#endif
 

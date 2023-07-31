@@ -1,11 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "variables.h"
 
-char** separate_line(char *line);
+void skip_whitespace(char* line, int* position);
+
+char* get_next_word(char* line, int* position);
+bool get_next_num(char* line, int* position, int *number);
+
+long decToBinary(int decimal);
+
 char* concat_str(char *s1, char *s2);
 
-bool valid_label(char *word);
-bool valid_directive(char *word);
+bool valid_regi(char *regi);
+bool valid_label_mcro(char *word);
+
+inst_op stringToEnum(char* str);

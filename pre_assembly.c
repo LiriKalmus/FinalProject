@@ -9,19 +9,22 @@ bool pre_assembly(char *fileName)
 	
 	char *curr_line = NULL;
 	size_t max_len = 0;
-	int ch, i = 0;
-	char **words;
+	int ch, i = 0, position = 0;
+	char *word = NULL;
 
-	char *mcro_name, *mcro_definition = "";
 	bool reading_mcro = FALSE;
 	mcro_t *mcro_table = createTable_mcro();
-
+	char *mcro_name = NULL, *mcro_definition = (char *)malloc(1);;
+	
+	mcro_definition[0] = '\0';
+	
 	/* if unable to open the file: */
 	if(as_file == NULL){
 		fprintf(stderr, "Unable to open %s.as! \n", fileName);
 		free(as_fileName);
         	fclose(as_file);
 		freeMcro_t(mcro_table);
+		free(mcro_definition);
 		return FALSE;
 	}
 	
@@ -35,6 +38,7 @@ bool pre_assembly(char *fileName)
 		free(am_full_name);
         	fclose(am_file);
 		freeMcro_t(mcro_table);
+		free(mcro_definition);
 		return FALSE;
 	}	
 	
@@ -50,17 +54,16 @@ bool pre_assembly(char *fileName)
 		if (ch == '\n') {
 			curr_line[i] = '\0'; 
 			i = 0;
-		
-			/*Separating the line into an array of words:*/
-			words = separate_line(curr_line);
+			position = 0;
+			word = get_next_word(curr_line, &position);
 							
 			/* If the first field is a macro name listed in the macro table*/
-			if(getFromTable_mcro(mcro_table, words[0]) != NULL)
+			if(getFromTable_mcro(mcro_table, word) != NULL)
 			{
-				fputs(getFromTable_mcro(mcro_table, words[0]), am_file);
+				fputs(getFromTable_mcro(mcro_table, word), am_file);
 			}
 			/* If this is the start of a macro definition*/
-			else if(strncmp(words[0], "mcro",4)==0)
+			else if(strncmp(word, "mcro",4)==0)
 			{
 				/*If the line length of the macro definition is longer than 80*/
 				if(strlen(curr_line) > MAX_LINE+2){
@@ -71,39 +74,34 @@ bool pre_assembly(char *fileName)
 					fclose(am_file);
 					freeMcro_t(mcro_table);
 					free(curr_line);
-					i = 0;
-					if (words != NULL) {
-				    		while (words[i] != NULL) { free(words[i++]); }
-						free(words);  
-					}
+					free(word);
+					free(mcro_definition);
 					return FALSE;
 				}
-								
-				mcro_name= malloc(strlen(words[1])+1);
-				if(mcro_name == NULL){
-					fprintf(stderr, "memory cannot be allocated!!\n");
+				mcro_name = get_next_word(curr_line, &position);
+				if(!valid_label_mcro(mcro_name)){
+					fprintf(stderr, "the mcro name is incorrect\n");
 					free(as_fileName);
 					fclose(as_file);
 					free(am_full_name);
 					fclose(am_file);
 					freeMcro_t(mcro_table);
 					free(curr_line);
-					i = 0;
-					if (words != NULL) {
-				    		while (words[i] != NULL) { free(words[i++]); }
-						free(words);
-					}  
-					return FALSE;
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);
+					return FALSE;					
 				}
-				strcpy(mcro_name, words[1]);
-				reading_mcro = TRUE;
+				reading_mcro = TRUE;	
 			}
 
 			/*If this is the end of defining a macro*/
-			else if(strncmp(words[0], "endmcro",7)==0)
+			else if(strncmp(word, "endmcro",7)==0)
 			{
 				addToTable_mcro(mcro_table,mcro_name,mcro_definition);
-				strcpy(mcro_definition,"");
+				free(mcro_definition); 
+        			mcro_definition = (char *)malloc(1);
+				mcro_definition[0] = '\0';
 				reading_mcro = FALSE;
 			}
 
@@ -125,15 +123,8 @@ bool pre_assembly(char *fileName)
 	free(am_full_name);
         fclose(am_file);
 	
-	free(mcro_definition);
-        free(mcro_name);
 	freeMcro_t(mcro_table);
-	
-	i = 0;
-	if (words != NULL) {
-    		while (words[i] != NULL) { free(words[i++]); }
-		free(words);
-	}  
+	free(mcro_definition);	
 	free(curr_line);  
 
 	return TRUE;

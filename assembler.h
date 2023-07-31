@@ -10,3 +10,5 @@
 
 
 bool file_processing(char *fileName);
+
+void free_data(data_img* data_table);

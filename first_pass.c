@@ -2,17 +2,15 @@
 
 
 
-bool firstPass(FILE *file)
+bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img *data_table)
 {
 	bool pass_success = TRUE;
 	char curr_line[MAX_LINE+2];
-	int ch;
-	long IC = 0;
-	long DC = 0;
-	/*kidudNetonim_t *kidudNetonim_table = createKidudNetonim();*/
-	symbol_t *symbol_table = createTable_symbol();
+	int ch, position = 0;
+	char *word; 
 
 	while(fgets(curr_line, sizeof(curr_line), file) != NULL){
+		printf("--------------------------\n");
 		/*if the line is too long*/
 		if(strchr(curr_line,'\n') == NULL){
 			/*ERROR*/
@@ -22,96 +20,148 @@ bool firstPass(FILE *file)
 			while ((ch = fgetc(file)) != '\n' && ch != EOF)  continue;
 		}
 		else{
-			printf("###%s",curr_line);
-			pass_success = processing_line(curr_line, symbol_table/*,kidudNetonim_table, DC*/);	
+			position = 0;
+			word = get_next_word(curr_line, &position);
+			/*If the line is a comment or empty:*/
+			if(word == NULL || word[0] == '\0' || word[0] == ';'){
+				printf("A comment or blank line\n");
+				continue;
+			}
+			else{
+				printf("###%s",curr_line);
+				pass_success = processing_line(curr_line, IC, DC, symbol_table, data_table);	
+			}
+			free(word);
 		}
-	printSymbolTable(symbol_table);
+		/*printSymbolTable(symbol_table);*/
 	}
+
 	return pass_success;
 }
 	
-bool processing_line(char curr_line[MAX_LINE+2], symbol_t *symbol_table/*,kidudNetonim_t *kidudNetonim_table, long DC*/)
+bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *symbol_table, data_img *data_table)
 {
-	char **words = separate_line(curr_line);
 	bool reading_label = FALSE, line_success = TRUE;
-	int word_position = 0;
-	int char_count=0;
+	int position = 0;
+	char *label = get_next_word(curr_line, &position);
+	char *word, *first_operand, *second_operand;
+	inst_op opcode;
+	type_op type_opcode;
+/*	
+	printf("first:%d\n",strlen(word));
+	printf("curr_line:%s\n",curr_line);
+*/
 	
-
-	printf("@^^^^^^^@!%s\n",words[word_position]);
-	if(words[word_position][strlen(words[word_position])-1] == ':')
+	
+	if(label[strlen(label)-1] == ':')
 	{
-		if(valid_label(words[word_position])){
+		label[strlen(label)-1] = '\0';
+		if(valid_label_mcro(label)){
+			printf("IS A LABEL:%s\n",label);
 			reading_label = TRUE;
 		}
 		else{
 			/*ERROR*/
 			line_success = FALSE;
 		}
-		word_position++;	
-	}printf("@^#@#@#@#@^@!%s\n",words[word_position]);
-
+	}
+	else{
+		position = 0;
+	}
 	
 
-	if(words[word_position][0] == '.'){
-		if(valid_directive(words[word_position])){
-			printf("directive:%s\n",words[word_position]);
-			
-			if (strcmp(words[word_position], "data") == 0 || strcmp(words[word_position], "string") == 0)
+	word = get_next_word(curr_line, &position);
+	if(word[0] == '.')
+	{		
+		printf("directive:%s\n",word);
+		
+		if (strcmp(word, ".data") == 0 || strcmp(word, ".string") == 0)
+		{
+			if(reading_label)
 			{
-				if(reading_label)
-				{
-				printf("@!!!!!!!!@!%s\n",words[word_position]);
-				printf("@!@!%s\n",words[word_position-1]);
-				addToTable_symbol (symbol_table, words[word_position-1], 0, date_type);
-					
-				
-					/*while(words[word_position+1][char_count] !='\n' || words[word_position+1][char_count] !=EOF)
-					{
-						if(words[word_position+1][char_count] =='"')
-						char_count++;
-						else
-						addToKidudNetonim_t(kidudNetonim_table, DC, words[word_position+1][char_count]);
-						{
-						char_count++;
-						DC++;
-						}
+				addToTable_symbol (symbol_table, label, &DC, date_type);
+			}	
+			/*add to data img*/
+			add_data_to_data_img(curr_line, &position, word, data_table);
 
-					}
-					char_count=0;*/
+		} 
+		else if (strcmp(word, ".extern") == 0)
+		{
+			printf("extern\n");
+			/*addToTable_symbol (symbol_table, curr_line, position, 0, external_type);*/
+		} 
+		/*else if (strcmp(word, ".entry") == 0) 
+		{
+			printf("entry\n");
+			continue;
+		} */
+		else if (strcmp(word, ".entry") != 0) 
+		{
+			printf("Invalid choice\n");
+			/*ERROR*/
+			line_success = FALSE;
+		}
+	}
+	else /* the word should be opcode*/
+	{
+		first_operand = get_next_word(curr_line, &position);
+		type_opcode = get_type_op(first_operand));
+		opcode = stringToEnum(word);
 
-				}
-			} 
-			else if (strcmp(words[word_position], "entry") == 0) 
-			{
-				printf("entry\n");
-
-			} 
-			else if (strcmp(words[word_position], "extern") == 0)
-			{
-				printf("extern\n");
-				addToTable_symbol (symbol_table, words[word_position+1], 8, external_type);
-			} 
-			else {
-				printf("Invalid choice\n");
+		if(opcode == OP_RTS || opcode == OP_STOP){
+			if(type_opcode != NO_OPERAND){
+				/*ERROR*/
+				printf("No operands are needed.\n");
 				line_success = FALSE;
 			}
+			/* ic++ */
 		}
-	else if(1==1) 
-		{
-		printf("$$$$$$$$$$$$$$$$#@$%s\n",words[word_position]);
-		}
-	/*else if(strcmp(words[word_position], "mov")==0 || strcmp(words[word_position], "cmp")==0 || strcmp(words[word_position], "add")==0 || strcmp(words[word_position], "sub")==0 || strcmp(words[word_position], "not")==0 || strcmp(words[word_position], "clr")==0 || strcmp(words[word_position], "lea")==0 || strcmp(words[word_position], "inc")==0 || strcmp(words[word_position], "dec")==0 || strcmp(words[word_position], "jmp")==0 || strcmp(words[word_position], "bne")==0 || strcmp(words[word_position], "red")==0 || strcmp(words[word_position], "prn")==0 || strcmp(words[word_position], "jsr")==0 || strcmp(words[word_position], "rts")==0 || strcmp(words[word_position], "stop")==0)
-	
-		addToTable_symbol (symbol_table, words[word_position-1], 16, code_type);
-		
-		{
-			ERROR
-			line_success = FALSE;
-		}*/
-		word_position++;	
-	}
+		/*switch (opcode) {
+			case OP_RTS:
+			case OP_STOP:
+				if(first_operand != NULL || first_operand[0] != '\0'){
+					/*ERROR*/
+		/*			printf("No operands are needed.\n");
+					line_success = FALSE;
+				}
+				break;
+			/*if(first_operand == NULL || first_operand[0] == '\0'){
+				/*ERROR*/
+				/*printf("missing operand.\n");
+				line_success = FALSE;
+			}*/
+		/*	case OP_NOT:
+			case OP_CLR:
+			case OP_INC:
+			case OP_DEC:
+			case OP_JMP:
+			case OP_BNE:
+			case OP_RED:
+			case OP_PRN:
+			case OP_JSR:
+				printf("need 1 parameter\n");
+				break;
 
+			case OP_MOV:
+			case OP_CMP:
+			case OP_ADD:
+			case OP_SUB:
+			case OP_LEA:
+				printf("need 2 parameters\n");
+				break;
+
+			case OP_NONE:
+				/*ERROR*/
+		/*		printf("Invalid instruction.\n");
+				line_success = FALSE;
+				break;
+	    	}*/
+		free(first_operand);
+	}	
+	
+	free(label);
+	free(word);
+	
 	return line_success;
 }
 
@@ -119,37 +169,78 @@ bool processing_line(char curr_line[MAX_LINE+2], symbol_t *symbol_table/*,kidudN
 
 
 
+bool add_data_to_data_img(char curr_line[MAX_LINE+2], int *position, char *directive, data_img *data_table)
+{
+	int number;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*while(fgets(curr_line, sizeof(curr_line), file) != NULL)
-	{
-		
-	
-
+	if(strcmp(directive, ".data") == 0)
+	{	
+		skip_whitespace(curr_line, position);
+		if(curr_line[*position] == ',')
+		{
+			/*ERROR*/
+			printf("Comma before the first number\n");
+			return FALSE;
+		}
+		while(curr_line[*position] != '\0')
+		{
+			if(get_next_num(curr_line, position,&number)){
+				/*number correct - add to data table*/		
+				printf("number:%d\n",number);
+			}
+			else{
+				/*ERROR*/
+				printf("is not a number\n");
+				return FALSE;
+			}
+			if(curr_line[*position] == ','){
+				(*position)++;
+				skip_whitespace(curr_line, position);
+				if(curr_line[*position] == '\0'){				
+					/*ERROR*/
+					printf("Comma after the last number\n");
+					return FALSE;
+				}
+			}
+		}
 	}
-	return pass_success;
-}*/
+	else{ /* .string */
+		skip_whitespace(curr_line, position);
+		if(curr_line[*position] != '"')
+		{
+			/*ERROR*/
+			printf("The string does not start with  a double-quote\n");
+			return FALSE;
+		}
+		(*position)++;
+		skip_whitespace(curr_line, position);
+		while(curr_line[*position] != '"')
+		{
+			if(isprint(curr_line[*position])){
+				/*character correct - add to data table*/		
+				printf("character:%c\n",curr_line[*position]);
+				(*position)++;
+				skip_whitespace(curr_line, position);
+			}
+			else{
+				/*ERROR*/
+				printf("is not a character\n");
+				return FALSE;
+			}
+		}
+	}
+	return TRUE;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
