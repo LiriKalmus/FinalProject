@@ -61,31 +61,36 @@ bool get_next_num(char* line, int* position, int* number)
 }
 
 
-/*
-long decToBinary(int decimal) 
+
+void decToBinary(int decimal, int binaryArray[]) 
 {
-	long binary = 0, base = 1;
+	int i, carry = 1;
 	bool isNegative = FALSE;
+	for (i = 0; i < MAX_BITS; i++) {
+		binaryArray[i] = 0;
+	}
 
 	if (decimal < 0) {
 		isNegative = TRUE;
 		decimal = -decimal; /* Make the number positive for easier processing */
-	/*}
-
-	while (decimal > 0) {
-		binary += (decimal % 2) * base;
-		decimal /= 2;
-		base *= 10;
 	}
-	
-	
-	if (isNegative) {
-		printf("binary:%ld\n",binary);
-	}
-	
 
-    return binary;
-}*/
+	for (i = MAX_BITS-1; i >= 0; i--){
+		binaryArray[MAX_BITS-1-i] = (decimal >> i) & 1; 
+	}
+
+	/* If the number is negative, invert all the bits and add 1: */
+	if (isNegative)
+	{
+		for (i = MAX_BITS-1; i >= 0; i--)
+		{
+			binaryArray[i] = !binaryArray[i]; 
+			binaryArray[i] += carry; 
+			carry = binaryArray[i] / 2; 
+			binaryArray[i] %= 2; 
+		}
+	}
+}
 
 char* concat_str(char *s1, char *s2)
 {
@@ -116,6 +121,8 @@ bool valid_label_mcro(char *word)
 			word++; 
 		}
 	}
+	else
+		return FALSE;
 	return TRUE;
 }
 

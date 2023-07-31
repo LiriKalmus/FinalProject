@@ -124,6 +124,7 @@ bool pre_assembly(char *fileName)
         fclose(am_file);
 	
 	freeMcro_t(mcro_table);
+	free(mcro_name);
 	free(mcro_definition);	
 	free(curr_line);  
 

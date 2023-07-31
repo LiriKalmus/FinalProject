@@ -67,7 +67,7 @@ void freeMcro_t (mcro_t* tp);
 
 typedef struct symbol{
 	char* symbol_name;
-	int address;
+	long DC;
 	symbol_type type;
 }symbol;
 
@@ -90,7 +90,7 @@ symbol_t *createTable_symbol();
 add a symbol to the table 
 
 */
-void addToTable_symbol (symbol_t* tp, const char* symbol_name, int address, symbol_type type);
+void addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_type type);
 
 
 
@@ -104,19 +104,12 @@ symbol* getFromTable_symbols (symbol_t* tp, const char *symbol_name);
 
 void printSymbolTable(symbol_t* tp);
 
-/*data\string word
-
-typedef struct kidudNetonim_t
-{
-	long DC;
-	char* data;
-	
-}kidudNetonim_t;
+void freeTable_symbol(symbol_t* tp);
 
 
-kidudNetonim_t* createKidudNetonim();
-void addToKidudNetonim_t(kidudNetonim_t* tp, long new_DC, const char* new_data);
-void freeKidudNetonim_t(kidudNetonim_t* tp);*/
+void printAllNodes(data_img** node);
+
+void freeAllNodes(data_img** head);
 
 #endif
 

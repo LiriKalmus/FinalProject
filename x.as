@@ -17,12 +17,13 @@ endmcro
 bne LOOP
 
 mcro m3
-
+.extern b
 endmcro
 
 END: stop f
 ;zxdfcgvnjk
 m3
+.extern 
 STR: .string "abcdef"
 LENGTH: .data 6,-9,15
 K: .data 22

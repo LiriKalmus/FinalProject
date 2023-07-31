@@ -4,6 +4,7 @@
 
 #define MAX_LINE 80
 #define MAX_LABEL 31
+#define MAX_BITS 12
 
 /*enables boolean functions*/
 typedef enum Bool{
@@ -45,9 +46,11 @@ typedef struct code_file{
 } code_file;
 
 typedef struct data_img{
-	long bin_data;
+	long DC;
+	int data[MAX_BITS];
 	struct data_img *next;
 } data_img;
+
 
 
 typedef enum inst_op{

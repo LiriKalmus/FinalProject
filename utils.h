@@ -10,7 +10,7 @@ void skip_whitespace(char* line, int* position);
 char* get_next_word(char* line, int* position);
 bool get_next_num(char* line, int* position, int *number);
 
-long decToBinary(int decimal);
+void decToBinary(int decimal, int binaryArray[]);
 
 char* concat_str(char *s1, char *s2);
 

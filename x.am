@@ -13,7 +13,8 @@ bne LOOP
 
 END: stop f
 ;zxdfcgvnjk
-
+.extern b
+.extern 
 STR: .string "abcdef"
 LENGTH: .data 6,-9,15
 K: .data 22
