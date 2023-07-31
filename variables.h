@@ -74,7 +74,7 @@ typedef enum type_op{
 	NO_OPERAND,
 	NUMBER,
 	REGISTER,
-	LABEL
+	LABEL,
 	INCORRECT
 } type_op;	
 

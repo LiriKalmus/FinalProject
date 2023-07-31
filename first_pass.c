@@ -105,7 +105,7 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 	else /* the word should be opcode*/
 	{
 		first_operand = get_next_word(curr_line, &position);
-		type_opcode = get_type_op(first_operand));
+		type_opcode = get_type_op(first_operand);
 		opcode = stringToEnum(word);
 
 		if(opcode == OP_RTS || opcode == OP_STOP){
