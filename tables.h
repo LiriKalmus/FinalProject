@@ -111,5 +111,7 @@ void printAllNodes(data_img** node);
 
 void freeAllNodes(data_img** head);
 
+void printAllwords(code_word **head);
+
 #endif
 

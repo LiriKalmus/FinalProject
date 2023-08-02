@@ -7,6 +7,7 @@ bool file_processing(char *fileName)
 	FILE *am_file;
 	long IC = 0, DC = 0;
 	data_img **data_table = NULL;
+	code_word **code_word_t = NULL;
 	symbol_t *symbol_table = createTable_symbol();
 
  	if(!pre_assembly(fileName)){
@@ -24,7 +25,7 @@ bool file_processing(char *fileName)
 		return FALSE;
 	}
 	
-	if(!firstPass(am_file, &IC, &DC, symbol_table, &data_table)){
+	if(!firstPass(am_file, &IC, &DC, symbol_table, &data_table, &code_word_t)){
 		printf("FIRST PASS FAILED");
 	}
 	printSymbolTable(symbol_table);
@@ -32,6 +33,9 @@ bool file_processing(char *fileName)
 
 	freeTable_symbol(symbol_table);
 	freeAllNodes(&data_table);
+
+	printAllwords(&code_word_t);
+
 	free(am_fileName);
        	fclose(am_file);
 	return TRUE;

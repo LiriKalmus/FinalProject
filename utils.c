@@ -62,11 +62,11 @@ bool get_next_num(char* line, int* position, int* number)
 
 
 
-void decToBinary(int decimal, int binaryArray[]) 
+void decToBinary(int decimal, int binaryArray[], int length) 
 {
 	int i, carry = 1;
 	bool isNegative = FALSE;
-	for (i = 0; i < MAX_BITS; i++) {
+	for (i = 0; i < length; i++) {
 		binaryArray[i] = 0;
 	}
 
@@ -75,14 +75,14 @@ void decToBinary(int decimal, int binaryArray[])
 		decimal = -decimal; /* Make the number positive for easier processing */
 	}
 
-	for (i = MAX_BITS-1; i >= 0; i--){
-		binaryArray[MAX_BITS-1-i] = (decimal >> i) & 1; 
+	for (i = length-1; i >= 0; i--){
+		binaryArray[length-1-i] = (decimal >> i) & 1; 
 	}
 
 	/* If the number is negative, invert all the bits and add 1: */
 	if (isNegative)
 	{
-		for (i = MAX_BITS-1; i >= 0; i--)
+		for (i = length-1; i >= 0; i--)
 		{
 			binaryArray[i] = !binaryArray[i]; 
 			binaryArray[i] += carry; 
@@ -152,17 +152,92 @@ inst_op stringToEnum(char* str)
 
 type_op get_type_op(char* op)
 {
+	int i;
+
 	if(op == NULL || op[0] == '\0') return NO_OPERAND;
-	if(isdigit(op)) return NUMBER;
 	if(valid_regi(op)) return REGISTER;
 	if(valid_label_mcro(op)) return LABEL;
-	return INCORRECT;
+
+	for (i = 0; op[i]; i++) {
+		if(op[0] == '-' || op[0] == '+') continue;
+		if (!isdigit(op[i])) {
+			return INCORRECT;
+		}
+	}
+	return NUMBER;
 }
 
 
+void first_word_inst(int opcode, int first_op_type, int second_op_type, bool one_operand, int word_array[])
+{
+	int i;
+	int binary_opcode[MAX_OP_BINARY], binary_mion[MAX_MION_BINARY];
+
+	for (i = 0; i < MAX_BITS; i++) {
+		word_array[i] = 0;
+	}
+
+	decToBinary(opcode, binary_opcode, MAX_OP_BINARY);
+	for (i = 0; i < MAX_OP_BINARY; i++) {
+		word_array[3+i] = binary_opcode[i];
+	}
+
+	decToBinary(first_op_type, binary_mion, MAX_MION_BINARY);
+	if(one_operand)
+	{
+		for (i = 0; i < MAX_MION_BINARY; i++) {
+			word_array[7+i] = binary_mion[i];
+
+		}
+	}
+	else
+	{
+		for (i = 0; i < MAX_MION_BINARY; i++) {
+			word_array[i] = binary_mion[i];
+		}
+		
+		decToBinary(second_op_type, binary_mion, MAX_MION_BINARY);
+		for (i = 0; i < MAX_MION_BINARY; i++) {
+			word_array[7+i] = binary_mion[i];
+		}
+	}
+}
+
+void word_regi(int src, int dst, int word_array[])
+{
+	int i;
+	int binary_regi[MAX_REGI_BINARY];
+
+	for (i = 0; i < MAX_BITS; i++) {
+		word_array[i] = 0;
+	}
+
+	decToBinary(src, binary_regi, MAX_REGI_BINARY);
+	for (i = 0; i < MAX_REGI_BINARY; i++) {
+		word_array[i] = binary_regi[i];
+	}
+	
+	decToBinary(dst, binary_regi, MAX_REGI_BINARY);
+	for (i = 0; i < MAX_REGI_BINARY; i++) {
+		word_array[5+i] = binary_regi[i];
+	}
+}
+
+void word_number(int number, int word_array[])
+{
+	int i;
+	int binary_num[MAX_NUM_BINARY];
+
+	for (i = 0; i < MAX_BITS; i++) {
+		word_array[i] = 0;
+	}
+
+	decToBinary(number, binary_num, MAX_NUM_BINARY);
+	for (i = 0; i < MAX_NUM_BINARY; i++) {
+		word_array[i] = binary_num[i];
+	}
+}
 
 
-
-
-
+					
 

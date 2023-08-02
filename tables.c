@@ -208,7 +208,7 @@ void freeTable_symbol(symbol_t* tp) {
 }
 
 
-void printAllNodes(data_img** head) {
+void printAllNodes(data_img **head) {
 	int i;
     data_img* current = *head;
 
@@ -225,7 +225,24 @@ void printAllNodes(data_img** head) {
     }
 }
 
-void freeAllNodes(data_img** head) {
+void printAllwords(code_word **head) {
+	int i;
+    code_word* current = *head;
+
+    printf("Printing all nodes:\n");
+    while (current != NULL) {
+        printf("DC: %ld\n", current->IC);
+        printf("Data:");
+        for ( i = 0; i < MAX_BITS; i++) {
+            printf(" %d", current->data[i]);
+        }
+        printf("\n");
+
+        current = current->next;
+    }
+}
+
+void freeAllNodes(data_img **head) {
     data_img* current = *head;
     data_img* nextNode;
 

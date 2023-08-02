@@ -2,7 +2,7 @@
 
 
 
-bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img **data_table)
+bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img **data_table, code_word **code_word_t)
 {
 	bool pass_success = TRUE;
 	char curr_line[MAX_LINE+2];
@@ -29,7 +29,7 @@ bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img 
 			}
 			else{
 				printf("###%s",curr_line);
-				pass_success = processing_line(curr_line, IC, DC, symbol_table, data_table);	
+				pass_success = processing_line(curr_line, IC, DC, symbol_table, data_table, code_word_t);	
 			}
 			free(word);
 		}
@@ -39,14 +39,14 @@ bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img 
 	return pass_success;
 }
 	
-bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *symbol_table, data_img **data_table)
+bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *symbol_table, data_img **data_table, code_word **code_word_t)
 {
 	bool reading_label = FALSE, line_success = TRUE;
 	int position = 0;
 	char *label = get_next_word(curr_line, &position);
-	char *word, *first_operand, *second_operand, *label_to_add;
+	char *word, *label_to_add;
+	char *first_operand = NULL, *second_operand = NULL;
 	inst_op opcode;
-	type_op type_opcode;
 	
 	if(label[strlen(label)-1] == ':')
 	{
@@ -113,58 +113,21 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 	}
 	else /* the word should be opcode*/
 	{
-		/*first_operand = get_next_word(curr_line, &position);
-		type_opcode = get_type_op(first_operand);
 		opcode = stringToEnum(word);
 
-		if(opcode == OP_RTS || opcode == OP_STOP){
-			if(type_opcode != NO_OPERAND){
-				/*ERROR*/
-			/*	printf("No operands are needed.\n");
-				line_success = FALSE;
-			}
-			/* ic++ */
-		/*}
-		/*switch (opcode) {
-			case OP_RTS:
-			case OP_STOP:
-				if(first_operand != NULL || first_operand[0] != '\0'){
-					/*ERROR*/
-		/*			printf("No operands are needed.\n");
-					line_success = FALSE;
-				}
-				break;
-			/*if(first_operand == NULL || first_operand[0] == '\0'){
-				/*ERROR*/
-				/*printf("missing operand.\n");
-				line_success = FALSE;
-			}*/
-		/*	case OP_NOT:
-			case OP_CLR:
-			case OP_INC:
-			case OP_DEC:
-			case OP_JMP:
-			case OP_BNE:
-			case OP_RED:
-			case OP_PRN:
-			case OP_JSR:
-				printf("need 1 parameter\n");
-				break;
+		first_operand = get_next_word(curr_line, &position);
+		if(first_operand[strlen(first_operand)-1] == ','){
+			first_operand[strlen(first_operand)-1] = '\0';
+		}
 
-			case OP_MOV:
-			case OP_CMP:
-			case OP_ADD:
-			case OP_SUB:
-			case OP_LEA:
-				printf("need 2 parameters\n");
-				break;
+		skip_whitespace(curr_line, &position);
+		if(curr_line[position] == ','){
+			position++;			
+		}
 
-			case OP_NONE:
-				/*ERROR*/
-		/*		printf("Invalid instruction.\n");
-				line_success = FALSE;
-				break;
-	    	}*/
+		second_operand = get_next_word(curr_line, &position);
+		processing_instruction(opcode, first_operand, second_operand, code_word_t, IC);
+
 		/*free(first_operand);*/
 	}	
 	
@@ -194,7 +157,7 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 			if(get_next_num(curr_line, position,&number))
 			{		
 				printf("number:%d\n",number);
-				decToBinary(number,binaryArray);
+				decToBinary(number,binaryArray, MAX_BITS);
 				for (i = 0; i < 12; i++)
 				{
 					printf("%d", binaryArray[i]);
@@ -258,7 +221,7 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 			else if(isprint(curr_line[*position]))
 			{
 				ASCII_char = curr_line[*position];		
-				decToBinary(ASCII_char,binaryArray);
+				decToBinary(ASCII_char,binaryArray,MAX_BITS);
 				for (i = 0; i < 12; i++)
 				{
 					printf("%d", binaryArray[i]);
@@ -297,12 +260,14 @@ bool insert_to_data_img(data_img **head, long *new_DC, int binaryArray[]) {
 	for (i = 0; i < MAX_BITS; i++) {
 		new_node->data[i] = binaryArray[i];
 	}
+
 	for (i = 0; i < 12; i++)
 	{
 		printf("%d", new_node->data[i]);
 	}
 	printf("\n");
 	printf("DC:%ld\n",new_node->DC);
+
 	new_node->next = NULL; 
 
 	if (*head == NULL) {
@@ -311,7 +276,7 @@ bool insert_to_data_img(data_img **head, long *new_DC, int binaryArray[]) {
 	} else {
 		data_img *current = *head;
 		while (current->next != NULL) {
-		    current = current->next;
+			current = current->next;
 		}
 		current->next = new_node;
 	}
@@ -320,10 +285,253 @@ bool insert_to_data_img(data_img **head, long *new_DC, int binaryArray[]) {
 }
 
 
+bool processing_instruction(inst_op opcode, char *first_operand, char *second_operand, code_word **code_word_t, long *IC)
+{
+	type_op first_op_type, second_op_type;
+	bool one_operand = FALSE, regSrc = FALSE;
+	int word_array[MAX_BITS] = {0};
+	int i;
+
+	printf("opcode: %d\n",opcode);
+
+	printf("first_operand: %s\n",first_operand);
+	first_op_type = get_type_op(first_operand);
+	printf("first_op_type: %d\n",first_op_type);
+
+	if(first_op_type == REGISTER) regSrc = TRUE;
+
+	printf("second_operand: %s\n",second_operand);
+	second_op_type = get_type_op(second_operand);
+	printf("second_op_type: %d\n",second_op_type);
+
+	
+	if(first_op_type == INCORRECT || second_op_type == INCORRECT){
+		/*ERROR*/
+		printf("one or two operands are INCORRECT\n");
+		return FALSE;
+	}
+	
+	switch (opcode) {
+		case OP_RTS:
+		case OP_STOP:	
+			if(first_op_type == NO_OPERAND && second_op_type == NO_OPERAND)
+			{
+				/**insert to table*/
+
+				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+			}
+			else{
+				/*ERROR*/
+				printf("the opcode not match the operands\n");
+				return FALSE;
+			}
+			break;
+
+		case OP_NOT:
+		case OP_CLR:
+		case OP_INC:
+		case OP_DEC:
+		case OP_JMP:
+		case OP_BNE:
+		case OP_RED:
+		case OP_JSR:
+			if(first_op_type != NO_OPERAND && first_op_type != NUMBER && second_op_type == NO_OPERAND)
+			{
+				one_operand = TRUE;
+				regSrc = FALSE;
+				/**insert to table*/
+				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+
+				word_by_type(first_op_type, first_operand, word_array, regSrc);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+			}
+			else{
+				/*ERROR*/
+				printf("the opcode not match the operands\n");
+				return FALSE;
+			}
+			break;
+
+		case OP_PRN:
+			if(first_op_type != NO_OPERAND && second_op_type == NO_OPERAND)
+			{
+				one_operand = TRUE;
+				regSrc = FALSE;
+				/**insert to table*/
+				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+
+				word_by_type(first_op_type, first_operand, word_array, regSrc);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+			}
+			else{
+				/*ERROR*/
+				printf("the opcode not match the operands\n");
+				return FALSE;
+			}
+			break;
+
+		case OP_MOV:
+		case OP_ADD:
+		case OP_SUB:
+			if(first_op_type != NO_OPERAND && second_op_type != NO_OPERAND && second_op_type != NUMBER)
+			{
+				/**insert to table*/
+				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+	
+				if(first_op_type == REGISTER && second_op_type == REGISTER){
+					word_regi((first_operand[2]-'0'), (second_operand[2]-'0'), word_array);
+					insert_to_code_word(code_word_t, IC, word_array);
+					(*IC)++;
+				}
+				else{
+					word_by_type(first_op_type, first_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array);
+					(*IC)++;
+
+					word_by_type(second_op_type, second_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array);
+					(*IC)++;
+				}
+			}
+			else{
+				/*ERROR*/
+				printf("the opcode not match the operands\n");
+				return FALSE;
+			}
+			break;
+
+		case OP_CMP:
+			if(first_op_type != NO_OPERAND && second_op_type != NO_OPERAND)
+			{
+				/**insert to table*/
+				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+
+				if(first_op_type == REGISTER && second_op_type == REGISTER){
+					word_regi((first_operand[2]-'0'), (second_operand[2]-'0'), word_array);
+					insert_to_code_word(code_word_t, IC, word_array);
+					(*IC)++;
+				}
+				else{
+					word_by_type(first_op_type, first_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array);
+					(*IC)++;
+
+					word_by_type(second_op_type, second_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array);
+					(*IC)++;
+				} 
+			}
+			else{
+				/*ERROR*/
+				printf("the opcode not match the operands\n");
+				return FALSE;
+			}
+			break;
+
+		case OP_LEA:
+			if(first_op_type == LABEL && second_op_type != NO_OPERAND && second_op_type != NUMBER)
+			{
+				/**insert to table*/
+				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+
+				word_by_type(first_op_type, first_operand, word_array,regSrc);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+
+				word_by_type(second_op_type, second_operand, word_array,regSrc);
+				insert_to_code_word(code_word_t, IC, word_array);
+				(*IC)++;
+			}
+			else{
+				/*ERROR*/
+				printf("the opcode not match the operands\n");
+				return FALSE;
+			}
+			break;
+
+		case OP_NONE:
+			/*ERROR*/
+			printf("Invalid instruction.\n");
+			break;
+	}		
+	return TRUE;
+}
 
 
+bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[])
+{
+	int i;
+	code_word *new_node = (code_word *)malloc(sizeof(code_word));
+	if (new_node == NULL) {
+		printf("Memory allocation failed.\n");
+		return FALSE;
+	}
+	
+	/* Initialize the new node with the given values*/
+	new_node->IC = *new_IC;
+	for (i = 0; i < MAX_BITS; i++) {
+		new_node->data[i] = binaryArray[i];
+	}
+
+	for (i = 0; i < 12; i++)
+	{
+		printf("%d", new_node->data[i]);
+	}
+	printf("\n");
+	printf("IC:%ld\n",new_node->IC);
+
+	new_node->next = NULL; 
+
+	if (*head == NULL) {
+		printf("NULL\n");
+		*head = new_node;
+	} else {
+		code_word *current = *head;
+		while (current->next != NULL) {
+			current = current->next;
+		}
+		current->next = new_node;
+	}
+
+	return TRUE;
+}
 
 
-
-
+void word_by_type(type_op type, char *operand, int word_array[], bool regSrc)
+{
+	int i;
+	if(type == LABEL)
+	{
+		for (i = 0; i < MAX_BITS; i++)
+		{
+			word_array[i] = 2;
+		}
+	}
+	else if(type == REGISTER)
+	{
+		if(regSrc){
+			word_regi((operand[2]-'0'), 0, word_array);
+		}
+		else{
+			word_regi(0, (operand[2]-'0'), word_array);
+		}
+	}
+	else{ /* type == NUMBER */
+		word_number(atof(operand), word_array);
+	}
+}
 

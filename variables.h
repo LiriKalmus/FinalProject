@@ -5,6 +5,11 @@
 #define MAX_LINE 80
 #define MAX_LABEL 31
 #define MAX_BITS 12
+#define MAX_OP_BINARY 4
+#define MAX_MION_BINARY 3
+#define MAX_REGI_BINARY 5
+#define MAX_NUM_BINARY 10
+
 
 /*enables boolean functions*/
 typedef enum Bool{
@@ -18,11 +23,11 @@ typedef enum symbol_type {
 	date_type,
 	external_type
 } symbol_type;
-
+/*
 typedef struct code_word{
 	unsigned int ARE: 2;
 	/*int type; // 3 types: opcode, register, value.*/
-	
+	/*
 	union bits{
 		struct data{
 			unsigned int value: 10;
@@ -38,7 +43,12 @@ typedef struct code_word{
 		} regi;
 	} bits;
 } code_word;
-
+*/
+typedef struct code_word{
+	long IC;
+	int data[MAX_BITS];
+	struct code_word *next;
+} code_word;
 
 typedef struct code_file{
 	code_word word;
@@ -50,8 +60,6 @@ typedef struct data_img{
 	int data[MAX_BITS];
 	struct data_img *next;
 } data_img;
-
-
 
 typedef enum inst_op{
 	OP_MOV,
@@ -74,11 +82,11 @@ typedef enum inst_op{
 } inst_op;
 
 typedef enum type_op{
-	NO_OPERAND,
-	NUMBER,
-	REGISTER,
-	LABEL,
-	INCORRECT
+	NO_OPERAND = 0,
+	NUMBER = 1,
+	LABEL = 3,
+	REGISTER = 5,
+	INCORRECT = -1
 } type_op;	
 
 
