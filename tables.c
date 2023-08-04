@@ -100,20 +100,33 @@ symbol_t *createTable_symbol()
 	return tp;
 }
 
-void addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_type type)
+int search_symbol(symbol_t* tp, const char* symbol_name)
+{
+	int i;
+	for(i=0; i<tp->num_symbols; i++){
+		if(strcmp(tp->values[i].symbol_name, symbol_name) == 0){
+			return i;
+		}
+	}	
+	return -1;
+}
+
+bool addToTable_symbol (symbol_t* tp, const char* symbol_name, long *address, symbol_type type)
 {
 	symbol* new_symbol;
 		
 	if(!tp || !symbol_name || tp->num_symbols<0)
 	{
-		return;
+		return FALSE;
 	}
+
+	if(search_symbol(tp, symbol_name) != -1) return FALSE; 
 
 	new_symbol = (symbol*)malloc(sizeof(symbol));
 	if(!new_symbol)
 	{
 		fprintf(stderr, "memory cannot be allocated!!\n");
-		return;
+		return FALSE;
 	}
 	printf("1hi\n");
 	new_symbol->symbol_name=(char*)malloc((strlen(symbol_name)+1)*sizeof(char));
@@ -122,13 +135,19 @@ void addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_
 	{
 		free(new_symbol);
 		fprintf(stderr, "memory cannot be allocated!!\n");
+		return FALSE;
 	}
 	printf("2hi\n");
 
 	strcpy(new_symbol->symbol_name,symbol_name);
 	printf("name: %s\n",new_symbol->symbol_name);
 
-	new_symbol->DC = *DC;
+	if(address == NULL){
+		new_symbol->address = 0;
+	}
+	else{
+		new_symbol->address = *address;
+	}
 
 	new_symbol->type = type;
 	printf("3hi\n");
@@ -139,7 +158,7 @@ void addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_
 		printf("4hi\n");
 		free(new_symbol->symbol_name);
 		free(new_symbol);
-		return;
+		return FALSE;
 	}
 	
 
@@ -147,8 +166,7 @@ void addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_
 	tp->num_symbols++;
 printf("5hi\n");
 	free(new_symbol);
-		
-
+	return TRUE;
 }
 
 
@@ -187,7 +205,7 @@ void printSymbolTable(symbol_t* tp)
 	{
 		symbol* sym = &(tp->values[i]);
 		printf("Symbol Name: %s\n", sym->symbol_name);
-		printf("Address: %ld\n", sym->DC);
+		printf("Address: %ld\n", sym->address);
 		printf("type: %d\n", sym->type);
 
 		printf("---------------------\n");
@@ -231,7 +249,8 @@ void printAllwords(code_word **head) {
 
     printf("Printing all nodes:\n");
     while (current != NULL) {
-        printf("DC: %ld\n", current->IC);
+        printf("IC: %ld\n", current->IC);
+	printf("label:%s\n", current->label);
         printf("Data:");
         for ( i = 0; i < MAX_BITS; i++) {
             printf(" %d", current->data[i]);
@@ -242,7 +261,7 @@ void printAllwords(code_word **head) {
     }
 }
 
-void freeAllNodes(data_img **head) {
+void free_data_img(data_img **head) {
     data_img* current = *head;
     data_img* nextNode;
 
@@ -256,3 +275,44 @@ void freeAllNodes(data_img **head) {
 }
 
 
+void free_code_word(code_word **head) {
+    code_word* current = *head;
+    code_word* nextNode;
+
+    while (current != NULL) {
+        nextNode = current->next;
+        free(current);
+        current = nextNode;
+    }
+
+    *head = NULL;
+}
+
+void update_adresses(code_word **head_c, data_img **head_d, symbol_t* tp)
+{
+	code_word* current_c = *head_c;
+	data_img* current_d = *head_d;
+	long IC = 0;
+	int i;
+
+	while (current_c != NULL) {
+		current_c->IC += START_MEMORY;
+		IC = current_c->IC;
+		current_c = current_c->next;
+	}
+
+	while (current_d != NULL) {
+		current_d->DC += IC + 1;
+		current_d = current_d->next;
+	}
+
+	for ( i= 0; i < tp->num_symbols; i++) 
+	{
+		if(tp->values[i].type == CODE_TYPE){
+			tp->values[i].address += START_MEMORY;
+		}
+		else if(tp->values[i].type == DATA_TYPE){
+			tp->values[i].address += IC + 1;
+		}
+	}	
+}

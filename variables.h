@@ -9,6 +9,8 @@
 #define MAX_MION_BINARY 3
 #define MAX_REGI_BINARY 5
 #define MAX_NUM_BINARY 10
+#define START_MEMORY 100
+
 
 
 /*enables boolean functions*/
@@ -19,41 +21,18 @@ typedef enum Bool{
 
 
 typedef enum symbol_type {
-	code_type,
-	date_type,
-	external_type
+	CODE_TYPE,
+	DATA_TYPE,
+	EXTERNAL_TYPE,
+	ENTRY_TYPE
 } symbol_type;
-/*
-typedef struct code_word{
-	unsigned int ARE: 2;
-	/*int type; // 3 types: opcode, register, value.*/
-	/*
-	union bits{
-		struct data{
-			unsigned int value: 10;
-		} data;
-		struct opcode{
-			unsigned int mion_dest: 3;
-			unsigned int opcode: 4;
-			unsigned int mion_source: 3;
-		} opcode;
-		struct regi{
-			unsigned int reg_src: 5;
-		        unsigned int dst_reg: 5;
-		} regi;
-	} bits;
-} code_word;
-*/
+
 typedef struct code_word{
 	long IC;
+	char label[MAX_LABEL];
 	int data[MAX_BITS];
 	struct code_word *next;
 } code_word;
-
-typedef struct code_file{
-	code_word word;
-	struct code_file *next;
-} code_file;
 
 typedef struct data_img{
 	long DC;

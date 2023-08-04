@@ -18,7 +18,7 @@ bool insert_to_data_img(data_img **head, long *new_DC, int binaryArray[]);
 
 bool processing_instruction(inst_op opcode, char *first_operand, char *second_operand, code_word **code_word_t, long *IC);
 
-bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[]);
+bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[], bool isLabel, char *label);
 
-void word_by_type(type_op type, char *operand, int word_array[], bool regSrc);
+bool word_by_type(type_op type, char *operand, int word_array[], bool regSrc);
 

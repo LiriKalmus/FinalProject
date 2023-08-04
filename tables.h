@@ -67,7 +67,7 @@ void freeMcro_t (mcro_t* tp);
 
 typedef struct symbol{
 	char* symbol_name;
-	long DC;
+	long address;
 	symbol_type type;
 }symbol;
 
@@ -85,12 +85,20 @@ create an empty symbol table
 */
 symbol_t *createTable_symbol();
 
+
+
+int search_symbol(symbol_t* tp, const char* symbol_name);
+
+
+
+
+
 /* 
 
 add a symbol to the table 
 
 */
-void addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_type type);
+bool addToTable_symbol (symbol_t* tp, const char* symbol_name, long *DC, symbol_type type);
 
 
 
@@ -109,9 +117,12 @@ void freeTable_symbol(symbol_t* tp);
 
 void printAllNodes(data_img** node);
 
-void freeAllNodes(data_img** head);
+void free_data_img(data_img **head);
 
 void printAllwords(code_word **head);
 
+void free_code_word(code_word **head);
+
+void update_adresses(code_word **head_c, data_img **head_d, symbol_t* tp);
 #endif
 

@@ -26,15 +26,29 @@ bool file_processing(char *fileName)
 	}
 	
 	if(!firstPass(am_file, &IC, &DC, symbol_table, &data_table, &code_word_t)){
-		printf("FIRST PASS FAILED");
+		fprintf(stderr, "FIRST PASS FAILED \n");
+		return FALSE;
 	}
+	
 	printSymbolTable(symbol_table);
+	printAllwords(&code_word_t);
 	printAllNodes(&data_table);
 
-	freeTable_symbol(symbol_table);
-	freeAllNodes(&data_table);
+	rewind(am_file); /*start from the beginning of the file*/
+	if(!secondPass(fileName, am_file, symbol_table, &data_table, &code_word_t)){
+		fprintf(stderr, "SECOND PASS FAILED \n");
+		return FALSE;
+	}
 
+	printSymbolTable(symbol_table);
 	printAllwords(&code_word_t);
+	printAllNodes(&data_table);
+	
+	freeTable_symbol(symbol_table);
+
+	free_code_word(&code_word_t);
+
+	free_data_img(&data_table);
 
 	free(am_fileName);
        	fclose(am_file);

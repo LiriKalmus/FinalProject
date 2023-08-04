@@ -1,30 +1,16 @@
-       ;dxcgf ml,                                
-                       MAIN: mov LENGTH, @r3
-	LOOP: jmp L1
-mcro m1
-	sub @r1, @r4
-bne END
-endmcro
+.entry LENGTH
+.extern W
+MAIN: mov @r3 ,LENGTH
+LOOP: jmp L1
 prn -5
-	bne LOOP
-m1
-	                                                                               L1: inc K 
-
-mcro m2
-	jmp @r1
-endmcro
-
-bne LOOP
-
-mcro m3
-.extern b
-endmcro
-
-END: stop f
-;zxdfcgvnjk
-m3
-.extern 
+bne W
+sub @r1, @r4
+bne L3
+L1: inc K
+.entry LOOP
+jmp W
+END: stop
 STR: .string "abcdef"
 LENGTH: .data 6,-9,15
-K: .data     22
-m2
+K: .data 22
+.extern L3

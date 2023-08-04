@@ -27,14 +27,16 @@ bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img 
 				printf("A comment or blank line\n");
 				continue;
 			}
-			else{
-				printf("###%s",curr_line);
-				pass_success = processing_line(curr_line, IC, DC, symbol_table, data_table, code_word_t);	
+			printf("###%s",curr_line);
+			if(!processing_line(curr_line, IC, DC, symbol_table, data_table, code_word_t)){
+				/*ERROR*/
+				pass_success = FALSE;
 			}
 			free(word);
 		}
 	}
-	
+
+	update_adresses(code_word_t, data_table, symbol_table);
 
 	return pass_success;
 }
@@ -72,11 +74,12 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 		
 		if (strcmp(word, ".data") == 0 || strcmp(word, ".string") == 0)
 		{
-			if(reading_label)
-			{
-				addToTable_symbol (symbol_table, label, DC, date_type);
-				(*DC)++;
-			}	
+			if(reading_label && !addToTable_symbol (symbol_table, label, DC, DATA_TYPE)){
+				/*ERROR*/
+				printf("the label is incorrect!\n");
+				line_success = FALSE;
+			}
+
 			/*add the data to data img: */
 			if(!processing_data(curr_line, &position, word, data_table, DC)){
 				/*ERROR*/
@@ -90,20 +93,19 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 			if(valid_label_mcro(label_to_add))
 			{
 				printf("IS A LABEL2:%s\n",label_to_add);
-				addToTable_symbol (symbol_table, label_to_add, DC, external_type);
-				(*DC)++;
+				if(!addToTable_symbol (symbol_table, label_to_add, NULL, EXTERNAL_TYPE)){
+					/*ERROR*/
+					printf("the label is incorrect!\n");
+					line_success = FALSE;
+				}
 			}
 			else{
 				/*ERROR*/
+				printf("ERROR in extern\n");
 				line_success = FALSE;
 			}
 			free(label_to_add);
 		} 
-		/*else if (strcmp(word, ".entry") == 0) 
-		{
-			printf("entry\n");
-			continue;
-		} */
 		else if (strcmp(word, ".entry") != 0) 
 		{
 			printf("Invalid choice\n");
@@ -113,6 +115,12 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 	}
 	else /* the word should be opcode*/
 	{
+		if(reading_label && !addToTable_symbol (symbol_table, label, IC, CODE_TYPE)){
+			/*ERROR*/
+			printf("the label is incorrect!\n");
+			line_success = FALSE;
+		}
+
 		opcode = stringToEnum(word);
 
 		first_operand = get_next_word(curr_line, &position);
@@ -126,9 +134,12 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 		}
 
 		second_operand = get_next_word(curr_line, &position);
-		processing_instruction(opcode, first_operand, second_operand, code_word_t, IC);
-
-		/*free(first_operand);*/
+		if(!processing_instruction(opcode, first_operand, second_operand, code_word_t, IC)){
+			/*ERROR*/
+			line_success = FALSE;
+		}
+		free(first_operand);
+		free(second_operand);
 	}	
 	
 	free(label);
@@ -288,9 +299,8 @@ bool insert_to_data_img(data_img **head, long *new_DC, int binaryArray[]) {
 bool processing_instruction(inst_op opcode, char *first_operand, char *second_operand, code_word **code_word_t, long *IC)
 {
 	type_op first_op_type, second_op_type;
-	bool one_operand = FALSE, regSrc = FALSE;
+	bool one_operand = FALSE, regSrc = FALSE, isLabel = FALSE;
 	int word_array[MAX_BITS] = {0};
-	int i;
 
 	printf("opcode: %d\n",opcode);
 
@@ -319,7 +329,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 				/**insert to table*/
 
 				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
-				insert_to_code_word(code_word_t, IC, word_array);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 				(*IC)++;
 			}
 			else{
@@ -343,11 +353,11 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 				regSrc = FALSE;
 				/**insert to table*/
 				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
-				insert_to_code_word(code_word_t, IC, word_array);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 				(*IC)++;
 
-				word_by_type(first_op_type, first_operand, word_array, regSrc);
-				insert_to_code_word(code_word_t, IC, word_array);
+				isLabel = word_by_type(first_op_type, first_operand, word_array, regSrc);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, first_operand);
 				(*IC)++;
 			}
 			else{
@@ -364,11 +374,11 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 				regSrc = FALSE;
 				/**insert to table*/
 				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
-				insert_to_code_word(code_word_t, IC, word_array);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 				(*IC)++;
 
-				word_by_type(first_op_type, first_operand, word_array, regSrc);
-				insert_to_code_word(code_word_t, IC, word_array);
+				isLabel = word_by_type(first_op_type, first_operand, word_array, regSrc);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, first_operand);
 				(*IC)++;
 			}
 			else{
@@ -385,21 +395,21 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			{
 				/**insert to table*/
 				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
-				insert_to_code_word(code_word_t, IC, word_array);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 				(*IC)++;
 	
 				if(first_op_type == REGISTER && second_op_type == REGISTER){
 					word_regi((first_operand[2]-'0'), (second_operand[2]-'0'), word_array);
-					insert_to_code_word(code_word_t, IC, word_array);
+					insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 					(*IC)++;
 				}
 				else{
-					word_by_type(first_op_type, first_operand, word_array,regSrc);
-					insert_to_code_word(code_word_t, IC, word_array);
+					isLabel = word_by_type(first_op_type, first_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array, isLabel, first_operand);
 					(*IC)++;
 
-					word_by_type(second_op_type, second_operand, word_array,regSrc);
-					insert_to_code_word(code_word_t, IC, word_array);
+					isLabel = word_by_type(second_op_type, second_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array, isLabel, second_operand);
 					(*IC)++;
 				}
 			}
@@ -415,21 +425,21 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			{
 				/**insert to table*/
 				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
-				insert_to_code_word(code_word_t, IC, word_array);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 				(*IC)++;
 
 				if(first_op_type == REGISTER && second_op_type == REGISTER){
 					word_regi((first_operand[2]-'0'), (second_operand[2]-'0'), word_array);
-					insert_to_code_word(code_word_t, IC, word_array);
+					insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 					(*IC)++;
 				}
 				else{
-					word_by_type(first_op_type, first_operand, word_array,regSrc);
-					insert_to_code_word(code_word_t, IC, word_array);
+					isLabel = word_by_type(first_op_type, first_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array, isLabel, first_operand);
 					(*IC)++;
 
-					word_by_type(second_op_type, second_operand, word_array,regSrc);
-					insert_to_code_word(code_word_t, IC, word_array);
+					isLabel = word_by_type(second_op_type, second_operand, word_array,regSrc);
+					insert_to_code_word(code_word_t, IC, word_array, isLabel, second_operand);
 					(*IC)++;
 				} 
 			}
@@ -445,15 +455,15 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			{
 				/**insert to table*/
 				first_word_inst(opcode,first_op_type,second_op_type, one_operand, word_array);
-				insert_to_code_word(code_word_t, IC, word_array);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, NULL);
 				(*IC)++;
 
-				word_by_type(first_op_type, first_operand, word_array,regSrc);
-				insert_to_code_word(code_word_t, IC, word_array);
+				isLabel = word_by_type(first_op_type, first_operand, word_array,regSrc);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, first_operand);
 				(*IC)++;
 
-				word_by_type(second_op_type, second_operand, word_array,regSrc);
-				insert_to_code_word(code_word_t, IC, word_array);
+				isLabel = word_by_type(second_op_type, second_operand, word_array,regSrc);
+				insert_to_code_word(code_word_t, IC, word_array, isLabel, second_operand);
 				(*IC)++;
 			}
 			else{
@@ -472,7 +482,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 }
 
 
-bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[])
+bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[], bool isLabel, char *label)
 {
 	int i;
 	code_word *new_node = (code_word *)malloc(sizeof(code_word));
@@ -494,6 +504,12 @@ bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[])
 	printf("\n");
 	printf("IC:%ld\n",new_node->IC);
 
+	if(isLabel){
+		strcpy(new_node->label, label);
+	}
+	else{
+		strcpy(new_node->label, "");
+	}
 	new_node->next = NULL; 
 
 	if (*head == NULL) {
@@ -511,16 +527,18 @@ bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[])
 }
 
 
-void word_by_type(type_op type, char *operand, int word_array[], bool regSrc)
+/* return TRUE- the type of the operand is label */
+bool word_by_type(type_op type, char *operand, int word_array[], bool regSrc)
 {
 	int i;
 	if(type == LABEL)
 	{
-		for (i = 0; i < MAX_BITS; i++)
-		{
-			word_array[i] = 2;
+		for (i = 0; i < MAX_BITS; i++){
+			word_array[i] = 0;
 		}
+		return TRUE;
 	}
+
 	else if(type == REGISTER)
 	{
 		if(regSrc){
@@ -530,8 +548,12 @@ void word_by_type(type_op type, char *operand, int word_array[], bool regSrc)
 			word_regi(0, (operand[2]-'0'), word_array);
 		}
 	}
+
 	else{ /* type == NUMBER */
 		word_number(atof(operand), word_array);
 	}
+
+	return FALSE;
 }
+
 
