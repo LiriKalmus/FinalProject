@@ -6,8 +6,8 @@ bool file_processing(char *fileName)
 	char *am_fileName;
 	FILE *am_file;
 	long IC = 0, DC = 0;
-	data_img **data_table = NULL;
-	code_word **code_word_t = NULL;
+	data_img *data_table = NULL;
+	code_word *code_word_t = NULL;
 	symbol_t *symbol_table = createTable_symbol();
 
  	if(!pre_assembly(fileName)){
@@ -45,11 +45,8 @@ bool file_processing(char *fileName)
 	printAllNodes(&data_table);
 	
 	freeTable_symbol(symbol_table);
-
 	free_code_word(&code_word_t);
-
 	free_data_img(&data_table);
-
 	free(am_fileName);
        	fclose(am_file);
 	return TRUE;

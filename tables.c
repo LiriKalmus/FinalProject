@@ -46,7 +46,7 @@ void addToTable_mcro (mcro_t* tp, const char* mcro_name, const char* mcro_defini
 
 	if(!tp->values[tp->num_mcros].mcro_definition)
 	{
-		fprintf(stderr, "memory cannot be allocated!!\n");		
+		fprintf(stderr, "ERROR - memory cannot be allocated!!\n");		
 		return;
 	}
 

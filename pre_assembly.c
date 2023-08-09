@@ -20,7 +20,7 @@ bool pre_assembly(char *fileName)
 	
 	/* if unable to open the file: */
 	if(as_file == NULL){
-		fprintf(stderr, "Unable to open %s.as! \n", fileName);
+		fprintf(stderr, "ERROR - Unable to open %s.as! \n", fileName);
 		free(as_fileName);
         	fclose(as_file);
 		freeMcro_t(mcro_table);
@@ -32,7 +32,7 @@ bool pre_assembly(char *fileName)
 	am_file = fopen(am_full_name, "w");
 	/* if unable to open the file: */
 	if(am_file == NULL){
-		fprintf(stderr, "Unable to open %s.am! \n", fileName);
+		fprintf(stderr, "ERROR - Unable to open %s.am! \n", fileName);
 		free(as_fileName);
         	fclose(as_file);
 		free(am_full_name);
@@ -80,7 +80,7 @@ bool pre_assembly(char *fileName)
 				}
 				mcro_name = get_next_word(curr_line, &position);
 				if(!valid_label_mcro(mcro_name)){
-					fprintf(stderr, "the mcro name is incorrect\n");
+					fprintf(stderr, "ERROR - the mcro name is invalid\n");
 					free(as_fileName);
 					fclose(as_file);
 					free(am_full_name);
@@ -115,14 +115,15 @@ bool pre_assembly(char *fileName)
 			else{
 				fputs(curr_line, am_file);
 			}					
-		}
+		free(word);
+		}	
 	}
 		
 	free(as_fileName);
         fclose(as_file);
 	free(am_full_name);
         fclose(am_file);
-	
+
 	freeMcro_t(mcro_table);
 	free(mcro_name);
 	free(mcro_definition);	

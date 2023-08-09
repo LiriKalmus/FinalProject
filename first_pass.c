@@ -16,7 +16,7 @@ bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img 
 			/*ERROR*/
 			pass_success = FALSE;
 			printf("Line is too long\n");
-
+			fprintf(stderr, "ERROR - The line is too long \n");
 			while ((ch = fgetc(file)) != '\n' && ch != EOF)  continue;
 		}
 		else{
@@ -31,6 +31,7 @@ bool firstPass(FILE *file, long *IC, long *DC, symbol_t *symbol_table, data_img 
 			if(!processing_line(curr_line, IC, DC, symbol_table, data_table, code_word_t)){
 				/*ERROR*/
 				pass_success = FALSE;
+				fprintf(stderr, "ERROR - The content of the line is incorrect \n");
 			}
 			free(word);
 		}
@@ -59,7 +60,9 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 		}
 		else{
 			/*ERROR*/
+			fprintf(stderr, "ERROR - %s: In not a valid label \n",label);
 			line_success = FALSE;
+
 		}
 	}
 	else{
@@ -77,12 +80,14 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 			if(reading_label && !addToTable_symbol (symbol_table, label, DC, DATA_TYPE)){
 				/*ERROR*/
 				printf("the label is incorrect!\n");
+				fprintf(stderr,"ERROR - Failed to add to symbol table\n");
 				line_success = FALSE;
 			}
 
 			/*add the data to data img: */
 			if(!processing_data(curr_line, &position, word, data_table, DC)){
 				/*ERROR*/
+				fprintf(stderr,"ERROR - The content of the line is incorrect\n");
 				line_success = FALSE;
 			}
 		} 
@@ -96,12 +101,14 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 				if(!addToTable_symbol (symbol_table, label_to_add, NULL, EXTERNAL_TYPE)){
 					/*ERROR*/
 					printf("the label is incorrect!\n");
+					fprintf(stderr,"ERROR - Failed to add to symbol table\n");
 					line_success = FALSE;
 				}
 			}
 			else{
 				/*ERROR*/
 				printf("ERROR in extern\n");
+				fprintf(stderr,"ERROR - The label in invalid\n");
 				line_success = FALSE;
 			}
 			free(label_to_add);
@@ -109,6 +116,7 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 		else if (strcmp(word, ".entry") != 0) 
 		{
 			printf("Invalid choice\n");
+			fprintf(stderr,"ERROR - Invalid choice. The only choices are: entry, extern, srting, data \n");
 			/*ERROR*/
 			line_success = FALSE;
 		}
@@ -118,13 +126,14 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 		if(reading_label && !addToTable_symbol (symbol_table, label, IC, CODE_TYPE)){
 			/*ERROR*/
 			printf("the label is incorrect!\n");
+			fprintf(stderr,"ERROR - Failed to add the label into the DATA_IMG\n");
 			line_success = FALSE;
 		}
 
 		opcode = stringToEnum(word);
 
 		first_operand = get_next_word(curr_line, &position);
-		if(first_operand[strlen(first_operand)-1] == ','){
+		if(first_operand[0] != '\0' && first_operand[strlen(first_operand)-1] == ','){
 			first_operand[strlen(first_operand)-1] = '\0';
 		}
 
@@ -136,6 +145,7 @@ bool processing_line(char curr_line[MAX_LINE+2], long *IC, long *DC, symbol_t *s
 		second_operand = get_next_word(curr_line, &position);
 		if(!processing_instruction(opcode, first_operand, second_operand, code_word_t, IC)){
 			/*ERROR*/
+			fprintf(stderr, "ERROR - The content of the line is incorrect \n");
 			line_success = FALSE;
 		}
 		free(first_operand);
@@ -161,6 +171,7 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 		{
 			/*ERROR*/
 			printf("Comma before the first number\n");
+			fprintf(stderr, "ERROR - There must not be a comma before the first number\n");
 			return FALSE;
 		}
 		while(curr_line[*position] != '\0')
@@ -181,6 +192,7 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 			else{
 				/*ERROR*/
 				printf("is not a number\n");
+				fprintf(stderr, "ERROR - %d: Not a number, this variable must be an integer\n",number);
 				return FALSE;
 			}
 
@@ -192,12 +204,14 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 				if(curr_line[*position] == ','){
 					/*ERROR*/
 					printf("No more than one comma is possible\n");
+					fprintf(stderr, "ERROR - It is not possible to have two or more consecutive commas\n");
 					return FALSE;
 				}
 	
 				if(curr_line[*position] == '\0'){				
 					/*ERROR*/
 					printf("Comma after the last number\n");
+					fprintf(stderr, "ERROR - It is not possible to have comma/s after the last number\n");
 					return FALSE;
 				}
 			}
@@ -211,6 +225,7 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 		{
 			/*ERROR*/
 			printf("The string not start with  a double-quote\n");
+			fprintf(stderr, "ERROR - The string must start with a double-quote \n");
 			return FALSE;
 		}
 
@@ -250,6 +265,7 @@ bool processing_data(char curr_line[MAX_LINE+2], int *position, char *directive,
 			else{
 				/*ERROR*/
 				printf("The string not finish with  a double-quote\n");
+				fprintf(stderr, "ERROR - The string must end with a double-quote \n");
 				return FALSE;
 			}	
 		}
@@ -263,6 +279,7 @@ bool insert_to_data_img(data_img **head, long *new_DC, int binaryArray[]) {
 	data_img *new_node = (data_img *)malloc(sizeof(data_img));
 	if (new_node == NULL) {
 		printf("Memory allocation failed.\n");
+		fprintf(stderr, "ERROR - Memory allocation failed\n");
 		return FALSE;
 	}
 	
@@ -318,6 +335,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 	if(first_op_type == INCORRECT || second_op_type == INCORRECT){
 		/*ERROR*/
 		printf("one or two operands are INCORRECT\n");
+		fprintf(stderr, "ERROR - One or two operands are INCORRECT\n");
 		return FALSE;
 	}
 	
@@ -335,6 +353,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			else{
 				/*ERROR*/
 				printf("the opcode not match the operands\n");
+				fprintf(stderr, "ERROR - The opcode did not match the operands\n");
 				return FALSE;
 			}
 			break;
@@ -363,6 +382,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			else{
 				/*ERROR*/
 				printf("the opcode not match the operands\n");
+				fprintf(stderr, "ERROR - The opcode did not match the operands\n");
 				return FALSE;
 			}
 			break;
@@ -384,6 +404,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			else{
 				/*ERROR*/
 				printf("the opcode not match the operands\n");
+				fprintf(stderr, "ERROR - The opcode did not match the operands\n");
 				return FALSE;
 			}
 			break;
@@ -416,6 +437,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			else{
 				/*ERROR*/
 				printf("the opcode not match the operands\n");
+				fprintf(stderr, "ERROR - The opcode did not match the operands\n");
 				return FALSE;
 			}
 			break;
@@ -446,6 +468,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			else{
 				/*ERROR*/
 				printf("the opcode not match the operands\n");
+				fprintf(stderr, "ERROR - The opcode did not match the operands\n");
 				return FALSE;
 			}
 			break;
@@ -469,6 +492,7 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 			else{
 				/*ERROR*/
 				printf("the opcode not match the operands\n");
+				fprintf(stderr, "ERROR - The opcode did not match the operands\n");
 				return FALSE;
 			}
 			break;
@@ -476,7 +500,9 @@ bool processing_instruction(inst_op opcode, char *first_operand, char *second_op
 		case OP_NONE:
 			/*ERROR*/
 			printf("Invalid instruction.\n");
-			break;
+			fprintf(stderr, "ERROR - Invalid instruction\n");
+			return FALSE;
+
 	}		
 	return TRUE;
 }
@@ -488,6 +514,7 @@ bool insert_to_code_word(code_word **head, long *new_IC, int binaryArray[], bool
 	code_word *new_node = (code_word *)malloc(sizeof(code_word));
 	if (new_node == NULL) {
 		printf("Memory allocation failed.\n");
+		fprintf(stderr, "ERROR - Memory allocation failed\n");
 		return FALSE;
 	}
 	

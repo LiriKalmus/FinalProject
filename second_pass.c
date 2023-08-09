@@ -13,7 +13,7 @@ bool secondPass(char *fileName, FILE *file, symbol_t *symbol_table, data_img **d
 	
 	/* if unable to open the file: */
 	if(ext_file == NULL){
-		fprintf(stderr, "Unable to open %s.ext! \n", fileName);
+		fprintf(stderr, "ERROR - Unable to open %s.ext! \n", fileName);
         	fclose(ext_file);
 		free(ext_file_name);
 		return FALSE;
@@ -32,6 +32,7 @@ bool secondPass(char *fileName, FILE *file, symbol_t *symbol_table, data_img **d
 		printf("###%s",curr_line);
 		if(!processing_line2(curr_line, symbol_table)){
 			/*ERROR*/
+			fprintf(stderr,"ERROR - The content of the line is incorrect\n");
 			pass_success = FALSE;
 		}
 		free(word);
@@ -40,17 +41,20 @@ bool secondPass(char *fileName, FILE *file, symbol_t *symbol_table, data_img **d
 
 	if(!write_ent_file(fileName, symbol_table)){
 		/*ERROR*/
+		fprintf(stderr,"ERROR - Something went wrong with the Entry file\n");
 		pass_success = FALSE;
 	}
 
 	if(!decode_labeles(ext_file, symbol_table, code_word_t)){
 		/*ERROR*/
+		fprintf(stderr,"ERROR - Something went wrong with the decode\n");
 		pass_success = FALSE;
 	}
 
 
 	if(!write_ob_file(fileName, data_table, code_word_t)){
 		/*ERROR*/
+		fprintf(stderr,"ERROR - Something went wrong with the Object file\n");
 		pass_success = FALSE;
 	}
 
@@ -65,8 +69,9 @@ bool processing_line2(char curr_line[MAX_LINE+2], symbol_t *symbol_table)
 {
 	bool line_success = TRUE;
 	int position = 0, symbol_location;
-	char *symbol, *word = get_next_word(curr_line, &position);
-	
+	char *symbol = get_next_word(curr_line, &position);
+	char *word = get_next_word(curr_line, &position);
+
 	if(word[strlen(word)-1] == ':')
 	{
 		word = get_next_word(curr_line, &position);
@@ -78,15 +83,20 @@ bool processing_line2(char curr_line[MAX_LINE+2], symbol_t *symbol_table)
 		symbol_location = search_symbol(symbol_table, symbol);
 		if(symbol_location == -1){
 			/*ERROR*/
+			fprintf(stderr,"ERROR - Symbol not found\n");
 			printf("symbol not found");
 			line_success = FALSE;	
 		}
 		else{
 			symbol_table->values[symbol_location].type = ENTRY_TYPE;
 		}
-		free(symbol);
+		
+
 	}
+
+	free(symbol);
 	free(word);
+	
 	
 	return line_success;
 }
@@ -100,7 +110,7 @@ bool write_ent_file(char *fileName, symbol_t *symbol_table)
 	
 	/* if unable to open the file: */
 	if(ent_file == NULL){
-		fprintf(stderr, "Unable to open %s.ent! \n", fileName);
+		fprintf(stderr, "ERROR - Unable to open %s.ent! \n", fileName);
         	fclose(ent_file);
 		free(ent_file_name);
 		return FALSE;
@@ -140,6 +150,7 @@ bool decode_labeles(FILE *file, symbol_t *symbol_table, code_word **code_word_t)
 			symbol_location = search_symbol(symbol_table, current->label);
 			if(symbol_location == -1){
 				/*ERROR*/
+				fprintf(stderr,"ERROR - Symbol not found\n");
 				printf("symbol not found");
 				return FALSE;
 			}

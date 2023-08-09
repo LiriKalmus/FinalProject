@@ -1,5 +1,7 @@
 #include "utils.h"
 
+
+
 void skip_whitespace(char* line, int* position) 
 {    
 	/* Skip leading whitespace */
@@ -8,6 +10,7 @@ void skip_whitespace(char* line, int* position)
 	}
 }
  
+
 
 char* get_next_word(char *line, int *position)
 {
@@ -35,9 +38,12 @@ char* get_next_word(char *line, int *position)
 		result[i] = word_start[i];
 	}
 	result[i] = '\0'; /* Null-terminate the extracted word*/
+	
 
 	return result;
 }
+
+
 
 bool get_next_num(char* line, int* position, int* number)
 {
@@ -59,6 +65,7 @@ bool get_next_num(char* line, int* position, int* number)
 
 	return TRUE;
 }
+
 
 
 
@@ -104,13 +111,14 @@ char* concat_str(char *s1, char *s2)
 	return result;
 }
 
-/*check if register is valid:*/
+
+
 bool valid_regi(char *regi)
 {
 	return strlen(regi)==3 && regi[0] == '@' && regi[1] == 'r' && (0 <= regi[2] && regi[2] >= 7);
 }
 
-/*check if label or mcro is valid:*/
+
 bool valid_label_mcro(char *word)
 {
 	if(strlen(word) <= MAX_LABEL && isalpha(word[0])){
@@ -127,7 +135,7 @@ bool valid_label_mcro(char *word)
 }
 
 
-/* Function to map a string to the corresponding enum value: */
+
 inst_op stringToEnum(char* str) 
 {
     if (strcmp(str, "mov") == 0) return OP_MOV;
@@ -168,6 +176,7 @@ type_op get_type_op(char* op)
 }
 
 
+
 void first_word_inst(int opcode, int first_op_type, int second_op_type, bool one_operand, int word_array[])
 {
 	int i;
@@ -203,6 +212,8 @@ void first_word_inst(int opcode, int first_op_type, int second_op_type, bool one
 	}
 }
 
+
+
 void word_regi(int src, int dst, int word_array[])
 {
 	int i;
@@ -222,6 +233,8 @@ void word_regi(int src, int dst, int word_array[])
 		word_array[5+i] = binary_regi[i];
 	}
 }
+
+
 
 void word_number(int number, int word_array[])
 {

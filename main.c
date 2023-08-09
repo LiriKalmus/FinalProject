@@ -9,7 +9,7 @@ int main(int argc, char **argv)
 	int i;
 
 	if(argc < 2){
-		fprintf(stderr, "no enter a files!\n");
+		fprintf(stderr, "No file has been entered!\n");
 		exit(0);
 	}
 	
