@@ -65,8 +65,8 @@ bool pre_assembly(char *fileName)
 				word[strlen(word)-1] = '\0';
 				if(getFromTable_mcro(mcro_table, word) != NULL){
 					fprintf(stderr, " ERROR in line %d - the mcro name can not be a label\n", num_of_line);
-					free(as_fileName);
 					fclose(as_file);
+					free(as_fileName);
 					free(am_full_name);
 					fclose(am_file);
 					freeMcro_t(mcro_table);
@@ -84,8 +84,8 @@ bool pre_assembly(char *fileName)
 				/*If the line length is longer than 80*/
 				if(i > MAX_LINE+2){
 					fprintf(stderr, " ERROR in line %d - the line is too long\n", num_of_line);
-					free(as_fileName);
 					fclose(as_file);
+					free(as_fileName);
 					free(am_full_name);
 					fclose(am_file);
 					freeMcro_t(mcro_table);
@@ -96,8 +96,8 @@ bool pre_assembly(char *fileName)
 					return FALSE;
 				}
 				if(!suffix_line(curr_line, &position, num_of_line)){
-					free(as_fileName);
 					fclose(as_file);
+					free(as_fileName);
 					free(am_full_name);
 					fclose(am_file);
 					freeMcro_t(mcro_table);
@@ -116,10 +116,10 @@ bool pre_assembly(char *fileName)
 				/*If the line length is longer than 80*/
 				if(i > MAX_LINE+2){
 					fprintf(stderr, " ERROR in line %d - the line is too long\n", num_of_line);
-					free(as_fileName);
 					fclose(as_file);
-					free(am_full_name);
+					free(as_fileName);
 					fclose(am_file);
+					free(am_full_name);
 					freeMcro_t(mcro_table);
 					free(curr_line);
 					free(word);
@@ -131,10 +131,10 @@ bool pre_assembly(char *fileName)
 				mcro_name = get_next_word(curr_line, &position);
 				if(!valid_label_mcro(mcro_name)){
 					fprintf(stderr, "ERROR in line %d - the mcro name is invalid\n", num_of_line);
-					free(as_fileName);
 					fclose(as_file);
-					free(am_full_name);
+					free(as_fileName);
 					fclose(am_file);
+					free(am_full_name);
 					freeMcro_t(mcro_table);
 					free(curr_line);
 					free(word);
@@ -145,10 +145,10 @@ bool pre_assembly(char *fileName)
 
 				if(getFromTable_mcro(mcro_table, mcro_name) != NULL){
 					fprintf(stderr, "ERROR in line %d - the mcro name is already defined\n", num_of_line);
-					free(as_fileName);
 					fclose(as_file);
-					free(am_full_name);
+					free(as_fileName);
 					fclose(am_file);
+					free(am_full_name);
 					freeMcro_t(mcro_table);
 					free(curr_line);
 					free(word);
@@ -159,10 +159,10 @@ bool pre_assembly(char *fileName)
 
 
 				if(!suffix_line(curr_line, &position, num_of_line)){
-					free(as_fileName);
 					fclose(as_file);
-					free(am_full_name);
+					free(as_fileName);
 					fclose(am_file);
+					free(am_full_name);
 					freeMcro_t(mcro_table);
 					free(curr_line);
 					free(word);
@@ -179,10 +179,10 @@ bool pre_assembly(char *fileName)
 				/*If the line length is longer than 80*/
 				if(i > MAX_LINE+2){
 					fprintf(stderr, " ERROR - the mcro name is too long\n");
-					free(as_fileName);
 					fclose(as_file);
-					free(am_full_name);
+					free(as_fileName);
 					fclose(am_file);
+					free(am_full_name);
 					freeMcro_t(mcro_table);
 					free(curr_line);
 					free(word);
@@ -191,10 +191,10 @@ bool pre_assembly(char *fileName)
 				}
 
 				if(!suffix_line(curr_line, &position, num_of_line)){
+					fclose(as_file);					
 					free(as_fileName);
-					fclose(as_file);
-					free(am_full_name);
 					fclose(am_file);
+					free(am_full_name);
 					freeMcro_t(mcro_table);
 					free(curr_line);
 					free(word);
@@ -223,11 +223,13 @@ bool pre_assembly(char *fileName)
 		free(word);
 		}	
 	}
-		
+
+	fclose(as_file);	
 	free(as_fileName);
-        fclose(as_file);
-	free(am_full_name);
+
         fclose(am_file);
+	free(am_full_name);
+
 
 	freeMcro_t(mcro_table);
 	free(mcro_name);

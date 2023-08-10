@@ -117,12 +117,16 @@ bool processing_line2(char curr_line[MAX_LINE+2], symbol_t *symbol_table, int nu
 				if(curr_line[position] == ','){
 					/*ERROR*/
 					fprintf(stderr, "ERROR in line %d - It is not possible to have two or more consecutive commas\n", num_of_line);
+					free(symbol);
+					free(word);
 					return FALSE;
 				}
 			}
 			else{
 				/*ERROR*/
 				fprintf(stderr, "ERROR in line %d - Between two labels must be one comma\n", num_of_line);
+				free(symbol);
+				free(word);
 				return FALSE;
 			}
 
@@ -144,12 +148,18 @@ bool processing_line2(char curr_line[MAX_LINE+2], symbol_t *symbol_table, int nu
 		if(curr_line[position] == ','){				
 			/*ERROR*/
 			fprintf(stderr, "ERROR in line %d - It is not possible to have comma/s after the last label\n", num_of_line);
+				free(symbol);
+				free(word);			
 			return FALSE;
 		}
-		free(symbol);			
-	}
+		free(symbol);	
 
-	free(word);
+	}
+		free(word);
+
+
+
+
 	return line_success;
 }
 

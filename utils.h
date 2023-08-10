@@ -42,14 +42,16 @@ bool get_next_num(char* line, int* position, int *number);
 
 
 
+/*
+function that check if the end of the line in legal
 
+@param curr_line
+@param position
+@param num_of_line
+@return true if legal, otherwise false
 
-
+*/
 bool suffix_line(char *curr_line, int *position, int num_of_line);
-
-
-
-
 
 
 
