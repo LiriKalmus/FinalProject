@@ -21,7 +21,7 @@ char* get_next_word(char *line, int *position)
 
 	/* Determine the length of the first word */
 	word_start = line + *position;
-	while (line[*position] && !isspace(line[*position])) {
+	while (line[*position] && !isspace(line[*position]) && line[*position] != ',') {
 		word_length++;
 		(*position)++;
 	}
@@ -39,6 +39,8 @@ char* get_next_word(char *line, int *position)
 	}
 	result[i] = '\0'; /* Null-terminate the extracted word*/
 	
+	/* if there are spaces or tabs at the ending- so we ignore them: */	
+	skip_whitespace(line, position);
 
 	return result;
 }
@@ -66,7 +68,19 @@ bool get_next_num(char* line, int* position, int* number)
 	return TRUE;
 }
 
+bool suffix_line(char *curr_line, int *position, int num_of_line)
+{
+	char *empty_word = get_next_word(curr_line, position);
 
+	if(strlen(empty_word) > 0)
+	{
+		fprintf(stderr, "ERROR in line %d - the end of the line is illegal\n", num_of_line);
+		return FALSE;	
+	}
+
+	free(empty_word);
+	return TRUE;
+}
 
 
 void decToBinary(int decimal, int binaryArray[], int length) 
@@ -106,6 +120,7 @@ char* concat_str(char *s1, char *s2)
 		fprintf(stderr, "memory cannot be allocated!!\n");
 		return NULL;
 	}
+
 	strcpy(result, s1);
 	strcat(result, s2);
 	return result;
@@ -121,7 +136,10 @@ bool valid_regi(char *regi)
 
 bool valid_label_mcro(char *word)
 {
-	if(strlen(word) <= MAX_LABEL && isalpha(word[0])){
+	if(stringToEnum(word) != OP_NONE) return FALSE;
+
+	if(strlen(word) <= MAX_LABEL && isalpha(word[0]))
+	{
 		while (*word) {
 			if (!isalpha(*word) && !isdigit(*word)) {
 				return FALSE; /* Return FALSE if a non-letter, non-digit character is found */
@@ -129,8 +147,10 @@ bool valid_label_mcro(char *word)
 			word++; 
 		}
 	}
-	else
+	else{
 		return FALSE;
+	}
+
 	return TRUE;
 }
 

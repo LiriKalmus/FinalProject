@@ -10,6 +10,7 @@
 #define MAX_REGI_BINARY 5
 #define MAX_NUM_BINARY 10
 #define START_MEMORY 100
+#define MAX_MEMORY 1024
 
 
 

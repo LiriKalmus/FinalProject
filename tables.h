@@ -164,16 +164,5 @@ void freeTable_symbol(symbol_t* tp);
 void free_code_word(code_word **head);
 
 
-
-
-void printSymbolTable(symbol_t* tp);
-
-void printAllNodes(data_img** node);
-
-void printAllwords(code_word **head);
-
-
-
-
 #endif
 

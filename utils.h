@@ -42,6 +42,17 @@ bool get_next_num(char* line, int* position, int *number);
 
 
 
+
+
+
+bool suffix_line(char *curr_line, int *position, int num_of_line);
+
+
+
+
+
+
+
 /*
 function that get decimal number, array and the array length and update the array to hold the digits of the binary's number
 

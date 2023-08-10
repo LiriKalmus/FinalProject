@@ -12,6 +12,7 @@ bool file_processing(char *fileName)
 
  	if(!pre_assembly(fileName)){
 		fprintf(stderr, "The macros did not spread properly in %s.as! \n", fileName);
+		freeTable_symbol(symbol_table);
 		return FALSE;
 	}
 
@@ -21,34 +22,26 @@ bool file_processing(char *fileName)
 	if(am_file == NULL){
 		fprintf(stderr, "Unable to open %s.am! \n", fileName);
 		free(am_fileName);
-        	fclose(am_file);
+		freeTable_symbol(symbol_table);
 		return FALSE;
 	}
 	
 	if(!firstPass(am_file, &IC, &DC, symbol_table, &data_table, &code_word_t)){
 		fprintf(stderr, "FIRST PASS FAILED \n");
-		return FALSE;
 	}
 	
-	printSymbolTable(symbol_table);
-	printAllwords(&code_word_t);
-	printAllNodes(&data_table);
-
 	rewind(am_file); /*start from the beginning of the file*/
-	if(!secondPass(fileName, am_file, symbol_table, &data_table, &code_word_t)){
+	if(!secondPass(fileName, am_file, symbol_table, &data_table, &code_word_t, &IC, &DC)){
 		fprintf(stderr, "SECOND PASS FAILED \n");
-		return FALSE;
 	}
 
-	printSymbolTable(symbol_table);
-	printAllwords(&code_word_t);
-	printAllNodes(&data_table);
-	
 	freeTable_symbol(symbol_table);
 	free_code_word(&code_word_t);
 	free_data_img(&data_table);
+
 	free(am_fileName);
        	fclose(am_file);
+
 	return TRUE;
 }
 

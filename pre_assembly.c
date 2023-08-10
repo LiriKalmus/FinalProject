@@ -14,7 +14,9 @@ bool pre_assembly(char *fileName)
 
 	bool reading_mcro = FALSE;
 	mcro_t *mcro_table = createTable_mcro();
-	char *mcro_name = NULL, *mcro_definition = (char *)malloc(1);;
+	char *mcro_name = NULL, *mcro_definition = (char *)malloc(1);
+
+	int num_of_line = 0;
 	
 	mcro_definition[0] = '\0';
 	
@@ -22,7 +24,6 @@ bool pre_assembly(char *fileName)
 	if(as_file == NULL){
 		fprintf(stderr, "ERROR - Unable to open %s.as! \n", fileName);
 		free(as_fileName);
-        	fclose(as_file);
 		freeMcro_t(mcro_table);
 		free(mcro_definition);
 		return FALSE;
@@ -36,7 +37,6 @@ bool pre_assembly(char *fileName)
 		free(as_fileName);
         	fclose(as_file);
 		free(am_full_name);
-        	fclose(am_file);
 		freeMcro_t(mcro_table);
 		free(mcro_definition);
 		return FALSE;
@@ -55,19 +55,16 @@ bool pre_assembly(char *fileName)
 			curr_line[i] = '\0'; 
 			i = 0;
 			position = 0;
+			num_of_line++;
 			word = get_next_word(curr_line, &position);
+
 							
-			/* If the first field is a macro name listed in the macro table*/
-			if(getFromTable_mcro(mcro_table, word) != NULL)
+			/* check if the macro name is not a label: */
+			if(word[strlen(word)-1] == ':')
 			{
-				fputs(getFromTable_mcro(mcro_table, word), am_file);
-			}
-			/* If this is the start of a macro definition*/
-			else if(strncmp(word, "mcro",4)==0)
-			{
-				/*If the line length of the macro definition is longer than 80*/
-				if(strlen(curr_line) > MAX_LINE+2){
-					fprintf(stderr, "the mcro name is too long\n");
+				word[strlen(word)-1] = '\0';
+				if(getFromTable_mcro(mcro_table, word) != NULL){
+					fprintf(stderr, " ERROR in line %d - the mcro name can not be a label\n", num_of_line);
 					free(as_fileName);
 					fclose(as_file);
 					free(am_full_name);
@@ -76,11 +73,64 @@ bool pre_assembly(char *fileName)
 					free(curr_line);
 					free(word);
 					free(mcro_definition);
+					free(mcro_name);
 					return FALSE;
 				}
+			}
+
+			/* If the first field is a macro name listed in the macro table*/
+			if(getFromTable_mcro(mcro_table, word) != NULL)
+			{
+				/*If the line length is longer than 80*/
+				if(i > MAX_LINE+2){
+					fprintf(stderr, " ERROR in line %d - the line is too long\n", num_of_line);
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);
+					return FALSE;
+				}
+				if(!suffix_line(curr_line, &position, num_of_line)){
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);
+					return FALSE;
+				}
+												
+				fputs(getFromTable_mcro(mcro_table, word), am_file);
+			}
+			/* If this is the start of a macro definition*/
+			else if(strncmp(word, "mcro",4)==0)
+			{
+				/*If the line length is longer than 80*/
+				if(i > MAX_LINE+2){
+					fprintf(stderr, " ERROR in line %d - the line is too long\n", num_of_line);
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);
+					return FALSE;
+				}
+
 				mcro_name = get_next_word(curr_line, &position);
 				if(!valid_label_mcro(mcro_name)){
-					fprintf(stderr, "ERROR - the mcro name is invalid\n");
+					fprintf(stderr, "ERROR in line %d - the mcro name is invalid\n", num_of_line);
 					free(as_fileName);
 					fclose(as_file);
 					free(am_full_name);
@@ -92,12 +142,67 @@ bool pre_assembly(char *fileName)
 					free(mcro_name);
 					return FALSE;					
 				}
+
+				if(getFromTable_mcro(mcro_table, mcro_name) != NULL){
+					fprintf(stderr, "ERROR in line %d - the mcro name is already defined\n", num_of_line);
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);
+					return FALSE;	
+				}
+
+
+				if(!suffix_line(curr_line, &position, num_of_line)){
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);					
+					return FALSE;
+				}
 				reading_mcro = TRUE;	
 			}
 
 			/*If this is the end of defining a macro*/
 			else if(strncmp(word, "endmcro",7)==0)
 			{
+				/*If the line length is longer than 80*/
+				if(i > MAX_LINE+2){
+					fprintf(stderr, " ERROR - the mcro name is too long\n");
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					return FALSE;
+				}
+
+				if(!suffix_line(curr_line, &position, num_of_line)){
+					free(as_fileName);
+					fclose(as_file);
+					free(am_full_name);
+					fclose(am_file);
+					freeMcro_t(mcro_table);
+					free(curr_line);
+					free(word);
+					free(mcro_definition);
+					free(mcro_name);
+					return FALSE;
+				}
+				
 				addToTable_mcro(mcro_table,mcro_name,mcro_definition);
 				free(mcro_definition); 
         			mcro_definition = (char *)malloc(1);

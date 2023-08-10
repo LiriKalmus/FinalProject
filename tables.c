@@ -128,7 +128,7 @@ bool addToTable_symbol (symbol_t* tp, const char* symbol_name, long *address, sy
 		fprintf(stderr, "memory cannot be allocated!!\n");
 		return FALSE;
 	}
-	printf("1hi\n");
+
 	new_symbol->symbol_name=(char*)malloc((strlen(symbol_name)+1)*sizeof(char));
 	
 	if(!new_symbol->symbol_name)
@@ -137,10 +137,9 @@ bool addToTable_symbol (symbol_t* tp, const char* symbol_name, long *address, sy
 		fprintf(stderr, "memory cannot be allocated!!\n");
 		return FALSE;
 	}
-	printf("2hi\n");
+
 
 	strcpy(new_symbol->symbol_name,symbol_name);
-	printf("name: %s\n",new_symbol->symbol_name);
 
 	if(address == NULL){
 		new_symbol->address = 0;
@@ -150,12 +149,11 @@ bool addToTable_symbol (symbol_t* tp, const char* symbol_name, long *address, sy
 	}
 
 	new_symbol->type = type;
-	printf("3hi\n");
+
 
 	tp->values = (symbol*)realloc(tp->values , (tp->num_symbols+1)*sizeof(symbol));
 	if(!tp->values)
 	{
-		printf("4hi\n");
 		free(new_symbol->symbol_name);
 		free(new_symbol);
 		return FALSE;
@@ -164,7 +162,7 @@ bool addToTable_symbol (symbol_t* tp, const char* symbol_name, long *address, sy
 
 	tp->values[tp->num_symbols] = *new_symbol;
 	tp->num_symbols++;
-printf("5hi\n");
+
 	free(new_symbol);
 	return TRUE;
 }
@@ -189,28 +187,6 @@ symbol* getFromTable_symbols (symbol_t* tp, const char *symbol_name)
 	return NULL;
 }
 
-void printSymbolTable(symbol_t* tp)
-{
-	int i;
-	if (tp == NULL || tp->values == NULL || tp->num_symbols == 0)
-	{
-		printf("Symbol table is empty.\n");
-		return;
-	}
-
-	printf("Symbol table contents:\n");
-	printf("---------------------\n");
-
-	for (i = 0; i < tp->num_symbols; i++)
-	{
-		symbol* sym = &(tp->values[i]);
-		printf("Symbol Name: %s\n", sym->symbol_name);
-		printf("Address: %ld\n", sym->address);
-		printf("type: %d\n", sym->type);
-
-		printf("---------------------\n");
-	}
-}
 
 void freeTable_symbol(symbol_t* tp) {
 	int i=0;
@@ -226,40 +202,6 @@ void freeTable_symbol(symbol_t* tp) {
 }
 
 
-void printAllNodes(data_img **head) {
-	int i;
-    data_img* current = *head;
-
-    printf("Printing all nodes:\n");
-    while (current != NULL) {
-        printf("DC: %ld\n", current->DC);
-        printf("Data:");
-        for ( i = 0; i < MAX_BITS; i++) {
-            printf(" %d", current->data[i]);
-        }
-        printf("\n");
-
-        current = current->next;
-    }
-}
-
-void printAllwords(code_word **head) {
-	int i;
-    code_word* current = *head;
-
-    printf("Printing all nodes:\n");
-    while (current != NULL) {
-        printf("IC: %ld\n", current->IC);
-	printf("label:%s\n", current->label);
-        printf("Data:");
-        for ( i = 0; i < MAX_BITS; i++) {
-            printf(" %d", current->data[i]);
-        }
-        printf("\n");
-
-        current = current->next;
-    }
-}
 
 void free_data_img(data_img **head) {
     data_img* current = *head;
